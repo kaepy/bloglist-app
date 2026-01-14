@@ -1,19 +1,54 @@
-import Blog from './Blog'
-import BlogForm from './BlogForm'
-import Togglable from './Togglable'
+import Blog from "./Blog";
+import BlogForm from "./BlogForm";
+import Togglable from "./Togglable";
+import PropTypes from "prop-types";
 
-const Bloglist = ({ blogFormRef, user, blogs, logout, createBlog, updateBlog, removeBlog }) => {
-
+const Bloglist = ({
+  blogFormRef,
+  user,
+  blogs,
+  logout,
+  createBlog,
+  updateBlog,
+  removeBlog,
+}) => {
   return (
     <div>
-      <p>{user.name} logged in <button id="logout-button" onClick={logout}>logout</button></p>
+      <p>
+        {user.name} logged in{" "}
+        <button id="logout-button" onClick={logout}>
+          logout
+        </button>
+      </p>
       {blogs
         .sort((a, b) => a.likes - b.likes)
-        .map(blog => <Blog key={blog.id} user={user} blog={blog} updateBlog={updateBlog} removeBlog={removeBlog} />)
-      }
-      <Togglable buttonLabel='new blog' ref={blogFormRef}><BlogForm createBlog={createBlog} /></Togglable>
+        .map((blog) => (
+          <Blog
+            key={blog.id}
+            user={user}
+            blog={blog}
+            updateBlog={updateBlog}
+            removeBlog={removeBlog}
+          />
+        ))}
+      <Togglable buttonLabel="new blog" ref={blogFormRef}>
+        <BlogForm createBlog={createBlog} />
+      </Togglable>
     </div>
-  )
-}
+  );
+};
 
-export default Bloglist
+Bloglist.propTypes = {
+  blogFormRef: PropTypes.object.isRequired,
+  user: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    username: PropTypes.string.isRequired,
+  }).isRequired,
+  blogs: PropTypes.array.isRequired,
+  logout: PropTypes.func.isRequired,
+  createBlog: PropTypes.func.isRequired,
+  updateBlog: PropTypes.func.isRequired,
+  removeBlog: PropTypes.func.isRequired,
+};
+
+export default Bloglist;

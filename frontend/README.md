@@ -58,10 +58,19 @@ Steps:
 - create vitest.config.js
 - update package.json
 - update test.js files from jest to vitest
+- update eslint cinfig to support vitest
 
 ## Update & wire Cypress with jsdom
 
 Upgrade Cypress, update cypress.config.js with jsdom preset, verify e2e tests still pass, check backend proxy settings.
+
+Steps:
+
+- npm install --save-dev cypress@latest
+- update cypress.config.js
+- fix test files
+- update eslint config to support cypress
+- npx cypress open
 
 ## Add Prop-types validation
 

@@ -1,70 +1,62 @@
 import js from "@eslint/js";
-import react from "eslint-plugin-react";
-import jest from "eslint-plugin-jest";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
 import cypress from "eslint-plugin-cypress";
 
 export default [
   {
-    ignores: ["dist", "node_modules"],
+    ignores: ["dist", "node_modules", "*.config.js"],
   },
   {
-    files: ["**/*.js", "**/*.jsx"],
+    files: ["**/*.{js,jsx}"],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: "module",
+      globals: globals.browser,
       parserOptions: {
+        ecmaVersion: "latest",
         ecmaFeatures: { jsx: true },
-      },
-      globals: {
-        browser: true,
-        es2020: true,
-        node: true,
       },
     },
     plugins: {
-      react,
-      cypress,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
     },
     rules: {
       ...js.configs.recommended.rules,
-      ...react.configs.recommended.rules,
-      ...cypress.configs.recommended.rules,
-      indent: ["error", 2],
-      "linebreak-style": ["error", "windows"],
-      quotes: ["error", "single"],
-      semi: ["error", "never"],
-      eqeqeq: "error",
-      "react/prop-types": "warn",
+      ...reactHooks.configs.recommended.rules,
+      ...reactRefresh.configs.vite.rules,
+      "no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z_]" }],
     },
-    settings: {
-      react: {
-        version: "detect",
+  },
+  {
+    files: ["**/*.test.{js,jsx}"],
+    languageOptions: {
+      globals: {
+        ...globals.vitest,
       },
     },
   },
   {
-    files: ["**/*.test.js", "**/*.test.jsx"],
+    files: ["cypress/**/*.{js,cy.js}"],
     languageOptions: {
       globals: {
-        describe: true,
-        it: true,
-        expect: true,
-        beforeEach: true,
-        afterEach: true,
-        vi: true,
+        ...globals.browser,
+        cy: "readonly",
+        Cypress: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
       },
     },
     plugins: {
-      jest,
+      cypress,
     },
     rules: {
-      ...jest.configs.recommended.rules,
-      "jest/no-deprecated-functions": "off",
-    },
-    settings: {
-      jest: {
-        version: 29,
-      },
+      ...cypress.configs.recommended.rules,
+      "no-unused-vars": "off",
     },
   },
 ];
