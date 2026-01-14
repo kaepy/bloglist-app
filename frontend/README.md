@@ -52,6 +52,13 @@ Steps:
 
 Install vitest, @vitest/ui, jsdom, update test scripts in package.json, create vitest.config.js, verify existing tests run with Vitest.
 
+Steps:
+
+- npm install --save-dev vitest @vitest/ui jsdom
+- create vitest.config.js
+- update package.json
+- update test.js files from jest to vitest
+
 ## Update & wire Cypress with jsdom
 
 Upgrade Cypress, update cypress.config.js with jsdom preset, verify e2e tests still pass, check backend proxy settings.

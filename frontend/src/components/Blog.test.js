@@ -1,84 +1,93 @@
-import React from 'react'
-import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
-import Blog from './Blog'
-import userEvent from '@testing-library/user-event'
+import React from "react";
+import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
+import Blog from "./Blog";
+import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 // CI=true npm test
 
-describe('Blog Component', () => {
+describe("Blog Component", () => {
   const blog = {
-    title: 'This is Blog title',
-    author: 'Blog Author',
-    url: 'Blog url',
+    title: "This is Blog title",
+    author: "Blog Author",
+    url: "Blog url",
     likes: 10,
     user: {
-      username: 'Testi Testinen',
+      username: "Testi Testinen",
     },
-  }
+  };
 
-  test('renders title', () => {
-    const component = render(<Blog blog={blog} />)
-    expect(component.container).toHaveTextContent(blog.title)
+  test("renders title", () => {
+    const component = render(<Blog blog={blog} />);
+    expect(component.container).toHaveTextContent(blog.title);
 
     //screen.debug()
-  })
+  });
 
-  test('renders content when view button is pressed', async () => {
-    const mockViewHandler = jest.fn()
+  test("renders content when view button is pressed", async () => {
+    const mockViewHandler = vi.fn();
 
     const userX = {
-      username: 'testi'
-    }
+      username: "testi",
+    };
 
-    const component = render(<Blog blog={blog} buttonToggle={mockViewHandler} user={userX} />)
-
-    //screen.debug()
-
-    const user = userEvent.setup()
-
-    const viewButton = screen.getByText('view')
-    await user.click(viewButton)
+    const component = render(
+      <Blog blog={blog} buttonToggle={mockViewHandler} user={userX} />
+    );
 
     //screen.debug()
 
-    expect(component.container).toHaveTextContent(blog.url)
-    expect(component.container).toHaveTextContent(blog.likes)
-    expect(component.container).toHaveTextContent(blog.user.username)
+    const user = userEvent.setup();
+
+    const viewButton = screen.getByText("view");
+    await user.click(viewButton);
 
     //screen.debug()
-  })
 
-  test('renders likes when like button is pressed twice', async () => {
-    const mockViewHandler = jest.fn()
-    const likesHandler = jest.fn()
+    expect(component.container).toHaveTextContent(blog.url);
+    expect(component.container).toHaveTextContent(blog.likes);
+    expect(component.container).toHaveTextContent(blog.user.username);
+
+    //screen.debug()
+  });
+
+  test("renders likes when like button is pressed twice", async () => {
+    const mockViewHandler = vi.fn();
+    const likesHandler = vi.fn();
 
     const userX = {
-      username: 'testi'
-    }
+      username: "testi",
+    };
 
-    const component = render(<Blog blog={blog} buttonToggle={mockViewHandler} updateBlog={likesHandler} user={userX} />)
+    const component = render(
+      <Blog
+        blog={blog}
+        buttonToggle={mockViewHandler}
+        updateBlog={likesHandler}
+        user={userX}
+      />
+    );
 
     //screen.debug()
 
-    const user = userEvent.setup()
+    const user = userEvent.setup();
 
-    const viewButton = screen.getByText('view')
-    await user.click(viewButton)
+    const viewButton = screen.getByText("view");
+    await user.click(viewButton);
 
     //screen.debug()
 
-    expect(component.container).toHaveTextContent(blog.likes)
+    expect(component.container).toHaveTextContent(blog.likes);
 
-    const likeButton = screen.getByText('like')
-    await user.dblClick(likeButton)
+    const likeButton = screen.getByText("like");
+    await user.dblClick(likeButton);
 
     //screen.debug()
 
     //expect(likesHandler.mock.calls).toHaveLength(2)
-    expect(likesHandler).toHaveBeenCalledTimes(2)
+    expect(likesHandler).toHaveBeenCalledTimes(2);
 
-    screen.debug()
-  })
-
-})
+    screen.debug();
+  });
+});
