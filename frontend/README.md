@@ -76,4 +76,18 @@ Steps:
 
 Install prop-types, add propTypes to all components (Blog, BlogForm, Togglable, Notification, Error, LoginForm), validate against current usage.
 
-Upgrade React & Axios — Update React to latest, update Axios to latest, verify no breaking changes in service files (services/blogs.js, services/login.js), test full app flow.
+Steps:
+
+- update prop-types
+- add missing prop types to components
+
+## Upgrade React & Axios
+
+Update React to latest, update Axios to latest, verify no breaking changes in service files (services/blogs.js, services/login.js), test full app flow.
+
+Steps:
+
+- THIS should have been done at the beginning as it effected to lint config a lot and other library versions!
+- update react
+- update axios
+- update everything else that still missing update
