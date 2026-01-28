@@ -1,5 +1,4 @@
-const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator')
+const mongoose = require("mongoose");
 
 // Salasanan validointi pitää tehä ennen hashausta, ja hashausta taas kun ei tietoturvasyistä kuulu tehä "vasta" kannan puolella nii kantavalidointeja ei voi käyttää salasanan validointiin
 
@@ -12,7 +11,7 @@ const userSchema = mongoose.Schema({
     unique: true,
     validate: {
       validator: function (value) {
-        return /^[A-Za-z0-9_.-]+$/.test(value)
+        return /^[A-Za-z0-9_.-]+$/.test(value);
       },
       message: 'Username can only contain letters, numbers, ".", "_", and "-"',
     },
@@ -22,23 +21,21 @@ const userSchema = mongoose.Schema({
   blogs: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Blog'
-    }
+      ref: "Blog",
+    },
   ],
-})
+});
 
-userSchema.plugin(uniqueValidator)
-
-userSchema.set('toJSON', {
+userSchema.set("toJSON", {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
     // the passwordHash should not be revealed
-    delete returnedObject.passwordHash
-  }
-})
+    delete returnedObject.passwordHash;
+  },
+});
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model("User", userSchema);
 
-module.exports = User
+module.exports = User;

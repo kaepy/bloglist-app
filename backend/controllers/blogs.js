@@ -93,8 +93,8 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
 
   // tarkastellaan onko blogin luonut käyttäjä ja kirjautunut käyttäjä sama
   if (loggedUser === blogCreator) {
-    await Blog.findByIdAndRemove(request.params.id) // alkuperänen
-    return response.status(204).end() // alkuperänen
+    await Blog.findByIdAndDelete(request.params.id)
+    return response.status(204).end()
   }
 
   response.status(401).json({ error: 'invalid' })

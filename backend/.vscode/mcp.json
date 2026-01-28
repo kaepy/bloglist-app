@@ -1,0 +1,30 @@
+{
+  "inputs": [
+    {
+      "id": "context7-api-key",
+      "type": "promptString",
+      "description": "API Key for Context7",
+      "password": true
+    }
+  ],
+  "servers": {
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "${input:context7-api-key}"
+      ]
+    }
+  }
+}
