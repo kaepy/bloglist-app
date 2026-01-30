@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 import PropTypes from "prop-types";
 
@@ -63,8 +62,6 @@ const BlogForm = ({ createBlog }) => {
 };
 
 BlogForm.propTypes = {
-  addBlog: PropTypes.func.isRequired,
-  toggleVisibility: PropTypes.func.isRequired,
   createBlog: PropTypes.func.isRequired,
 };
 

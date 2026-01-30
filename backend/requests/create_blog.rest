@@ -1,10 +1,13 @@
-POST http://localhost:3003/api/blogs
+// insert auth token below
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RpIiwiaWQiOiI2OTdjODkyNGJiNzdjNzFhNDlkYmRjZDQiLCJpYXQiOjE3Njk3Njk2ODYsImV4cCI6MTc2OTc3MzI4Nn0.iYc0k3jO3bjbs8J8w8Nd-hpdmzksgtRCLXixfQbrLuc
+
+POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: Bearer 
+Authorization: Bearer {{token}}
 
 {
-  "author": "",
-  "title": "",
-  "url": "",
-  "likes": 1
+  "author": "auttori 2",
+  "title": "titteli 2",
+  "url": "urlli 2",
+  "likes": 2
 }

@@ -56,51 +56,59 @@ const App = () => {
     // ei palauta promisea nii ei oo mitään awaitattavaa
     // window. ei ole pakollinen perinteisissä react appeissa (esim. frontti app), mutta sitä tarvittasiin esimerkisksi server side renderingissä. Windowin käyttö on kuitenkin yleisesti ottaen yhteensopivampi tapa joten sen käytöstä ei ole haittaakaan.
     window.localStorage.removeItem("loggedBlogappUser");
+    blogService.setToken(null);
     setUser(null);
 
     handleNotificationChange("See you again!");
   };
 
-  const addBlog = (blogObject) => {
-    blogFormRef.current.toggleVisibility();
-
-    //console.log(blogObject)
-
-    blogService.create(blogObject).then((returnedBlog) => {
+  const addBlog = async (blogObject) => {
+    try {
+      blogFormRef.current.toggleVisibility();
+      const returnedBlog = await blogService.create(blogObject);
       setBlogs(blogs.concat(returnedBlog));
-    });
 
-    handleNotificationChange(
-      `A new blog ${blogObject.title} by ${blogObject.author} added`
-    );
-  };
-
-  const updateBlog = (blogObject) => {
-    console.log("App-blogObject", blogObject);
-
-    blogService.update(blogObject.id, blogObject).then((returnedBlog) => {
-      setBlogs(
-        blogs.map((blog) => (blog.id !== blogObject.id ? blog : returnedBlog))
+      handleNotificationChange(
+        `A new blog ${blogObject.title} by ${blogObject.author} added`,
       );
-      //console.log('returnedBlog', returnedBlog)
-    });
-
-    //console.log('blogs', blogs)
-
-    handleNotificationChange(`New like added to blog ${blogObject.title}`);
+    } catch (error) {
+      handleErrorChange(
+        error.response?.data?.error || "Failed to add blog. Please try again.",
+      );
+    }
   };
 
-  const removeBlog = (blogObject) => {
-    //console.log('blogObject', blogObject)
+  const updateBlog = async (blogObject) => {
+    try {
+      const returnedBlog = await blogService.update(blogObject.id, blogObject);
+      setBlogs(
+        blogs.map((blog) => (blog.id !== blogObject.id ? blog : returnedBlog)),
+      );
 
+      handleNotificationChange(`New like added to blog ${blogObject.title}`);
+    } catch (error) {
+      handleErrorChange(
+        error.response?.data?.error ||
+          "Failed to update blog. Please try again.",
+      );
+    }
+  };
+
+  const removeBlog = async (blogObject) => {
     if (
       window.confirm(`Are you sure you want to remove ${blogObject.title} ?`)
     ) {
-      blogService.remove(blogObject.id).then(() => {
+      try {
+        await blogService.remove(blogObject.id);
         setBlogs(blogs.filter((blog) => blog.id !== blogObject.id));
 
         handleNotificationChange(`Blog ${blogObject.title} removed`);
-      });
+      } catch (error) {
+        handleErrorChange(
+          error.response?.data?.error ||
+            "Failed to remove blog. Please try again.",
+        );
+      }
     }
   };
 

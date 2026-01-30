@@ -3,20 +3,24 @@
 
 describe("Blog app", function () {
   beforeEach(function () {
-    cy.request("POST", "http://localhost:3003/api/testing/reset");
     const user1 = {
+      name: "Himmeli Hommeli",
       username: "himmeli",
       password: "hommeli",
     };
 
     const user2 = {
+      name: "Gimmeli Gommeli",
       username: "gimmeli",
       password: "gommeli",
     };
 
-    cy.request("POST", "http://localhost:3003/api/users/", user1);
-    cy.request("POST", "http://localhost:3003/api/users/", user2);
-    cy.visit("http://localhost:3000");
+    cy.request("POST", `${Cypress.env("BACKEND")}/testing/reset`);
+
+    cy.request("POST", `${Cypress.env("BACKEND")}/users`, user1);
+    cy.request("POST", `${Cypress.env("BACKEND")}/users`, user2);
+
+    cy.visit("http://localhost:5173");
   });
 
   it("Login form is shown", function () {
@@ -139,10 +143,11 @@ describe("Blog app", function () {
 
       for (let i = 0; i < 5; i++) {
         cy.get("@likeAnotherBlog").find("#like-button").click();
-        cy.get("@likeAnotherBlog").contains("likes").should("contain", "5");
       }
+      cy.get("@likeAnotherBlog").contains("likes").should("contain", "5");
 
-      cy.get("@likeYetBlog").find("#like-button").dblclick();
+      cy.get("@likeYetBlog").find("#like-button").click();
+      cy.get("@likeYetBlog").find("#like-button").click();
       cy.get("@likeYetBlog").contains("likes").should("contain", "2");
 
       cy.get(".blog").eq(0).should("contain", "and title");

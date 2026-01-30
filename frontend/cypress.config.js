@@ -7,7 +7,7 @@ export default defineConfig({
       // implement node event listeners here
     },
     env: {
-      apiUrl: "http://localhost:3003",
+      BACKEND: "http://localhost:3001/api",
     },
   },
   component: {

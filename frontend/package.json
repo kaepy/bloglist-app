@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "cypress:open": "cypress open"
+    "cypress": "cypress open"
   },
   "dependencies": {
     "@testing-library/user-event": "^14.6.1",

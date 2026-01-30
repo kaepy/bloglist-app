@@ -1,2 +1,25 @@
-node_modules
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Env & secrets
 .env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+target/
+
+# Build output
+dist/
+build/
+
+# Logs & coverage
+*.log
+coverage/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/mcp.json
+.DS_Store

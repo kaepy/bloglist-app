@@ -20,7 +20,7 @@ const Bloglist = ({
           logout
         </button>
       </p>
-      {blogs
+      {[...blogs]
         .sort((a, b) => a.likes - b.likes)
         .map((blog) => (
           <Blog

@@ -1,5 +1,4 @@
-import axios from 'axios'
-const baseUrl = '/api/login'
+import axios from "axios";
 
 // Uloskirjautuminen userilta:
 // window.localStorage.removeItem('loggedNoteappUser')
@@ -7,10 +6,9 @@ const baseUrl = '/api/login'
 // Local storagen tilan nollaus kokonaan:
 // window.localStorage.clear()
 
-const login = async credentials => {
-  const response = await axios.post(baseUrl, credentials)
-  return response.data
-}
+const login = async (credentials) => {
+  const response = await axios.post("/api/login", credentials);
+  return response.data;
+};
 
-const logger = { login }
-export default logger
+export default { login };

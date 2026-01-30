@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 const Blog = ({ user, blog, updateBlog, removeBlog }) => {
@@ -35,7 +35,7 @@ const Blog = ({ user, blog, updateBlog, removeBlog }) => {
       author: blog.author,
       url: blog.url,
       likes: newLikes,
-      user: blog.user.id,
+      user: blog.user?.id,
     });
   };
 
@@ -69,8 +69,8 @@ const Blog = ({ user, blog, updateBlog, removeBlog }) => {
               like
             </button>
           </li>
-          <li>user: {blog.user.username}</li>
-          {user.username === blog.user.username && (
+          <li>user: {blog.user?.username ?? "unknown"}</li>
+          {blog.user && user.username === blog.user.username && (
             <li>
               <button id="remove-button" onClick={deleteBlog}>
                 remove
@@ -95,12 +95,11 @@ Blog.propTypes = {
       id: PropTypes.string.isRequired,
     }).isRequired,
   }).isRequired,
-  buttonToggle: PropTypes.func.isRequired,
   updateBlog: PropTypes.func.isRequired,
-  removeBlog: PropTypes.func,
+  removeBlog: PropTypes.func.isRequired,
   user: PropTypes.shape({
     username: PropTypes.string.isRequired,
-  }),
+  }).isRequired,
 };
 
 export default Blog;
