@@ -24,7 +24,9 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === "ValidationError") {
     return response.status(400).json({ error: error.message });
   } else if (error.name === "MongoServerError" && error.code === 11000) {
-    return response.status(400).json({ error: "expected `username` to be unique" });
+    return response
+      .status(400)
+      .json({ error: "expected `username` to be unique" });
   } else if (error.name === "JsonWebTokenError") {
     return response.status(401).json({ error: "token missing or invalid" });
   } else if (error.name === "TokenExpiredError") {
@@ -47,6 +49,7 @@ const tokenExtractor = (request, response, next) => {
   next();
 };
 
+// middleware joka hakee käyttäjän tokenin perusteella ja liittää sen requestiin
 const userExtractor = async (request, response, next) => {
   try {
     const decodedToken = jwt.verify(request.token, process.env.SECRET);

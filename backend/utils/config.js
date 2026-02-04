@@ -1,6 +1,6 @@
 //Ympäristömuuttujien käsittely
 
-require("dotenv").config();
+require("dotenv").config(); // lataa ympäristömuuttujat .env-tiedostosta
 
 const SECRET = process.env.SECRET;
 const PORT = process.env.PORT;
