@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
+import { useSelector } from "react-redux";
 
-const Notification = ({ message }) => {
+const Notification = () => {
   const notificationStyle = {
     color: "green",
     background: "lightgrey",
@@ -12,9 +13,11 @@ const Notification = ({ message }) => {
     marginBottom: 10,
   };
 
-  if (message === null) {
-    return null;
-  }
+  // Get notification message from Redux store
+  const message = useSelector((state) => state.notification);
+
+  // Don't render anything if there's no notification
+  if (!message) return null;
 
   return <div style={notificationStyle}>{message}</div>;
 };

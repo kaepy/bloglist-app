@@ -6,13 +6,19 @@ import Notification from "./components/Notification";
 import Error from "./components/Error";
 import Bloglist from "./components/Bloglist";
 
+import { useDispatch, useSelector } from "react-redux";
+import { showNotification } from "./reducers/notificationReducer";
+
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  const [notificationMessage, setNotificationMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
+
+  const dispatch = useDispatch();
+
+  const notificationMessage = useSelector((state) => state.notification);
 
   const blogFormRef = useRef();
 
@@ -43,7 +49,7 @@ const App = () => {
       window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user));
       blogService.setToken(user.token);
       setUser(user);
-      handleNotificationChange(`Welcome ${user.username}!`);
+      dispatch(showNotification(`Welcome ${user.username}!`, 5));
       setUsername("");
       setPassword("");
     } catch {
@@ -59,7 +65,7 @@ const App = () => {
     blogService.setToken(null);
     setUser(null);
 
-    handleNotificationChange("See you again!");
+    dispatch(showNotification("See you again!", 5));
   };
 
   const addBlog = async (blogObject) => {
@@ -68,8 +74,11 @@ const App = () => {
       const returnedBlog = await blogService.create(blogObject);
       setBlogs(blogs.concat(returnedBlog));
 
-      handleNotificationChange(
-        `A new blog ${blogObject.title} by ${blogObject.author} added`,
+      dispatch(
+        showNotification(
+          `A new blog ${blogObject.title} by ${blogObject.author} added`,
+          5,
+        ),
       );
     } catch (error) {
       handleErrorChange(
@@ -85,7 +94,9 @@ const App = () => {
         blogs.map((blog) => (blog.id !== blogObject.id ? blog : returnedBlog)),
       );
 
-      handleNotificationChange(`New like added to blog ${blogObject.title}`);
+      dispatch(
+        showNotification(`New like added to blog ${blogObject.title}`, 5),
+      );
     } catch (error) {
       handleErrorChange(
         error.response?.data?.error ||
@@ -102,7 +113,7 @@ const App = () => {
         await blogService.remove(blogObject.id);
         setBlogs(blogs.filter((blog) => blog.id !== blogObject.id));
 
-        handleNotificationChange(`Blog ${blogObject.title} removed`);
+        dispatch(showNotification(`Blog ${blogObject.title} removed`, 5));
       } catch (error) {
         handleErrorChange(
           error.response?.data?.error ||
@@ -110,13 +121,6 @@ const App = () => {
         );
       }
     }
-  };
-
-  const handleNotificationChange = (notification) => {
-    setNotificationMessage(notification);
-    setTimeout(() => {
-      setNotificationMessage(null);
-    }, 5000);
   };
 
   const handleErrorChange = (error) => {

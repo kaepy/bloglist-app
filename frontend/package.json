@@ -14,11 +14,13 @@
     "cypress": "cypress open"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "@testing-library/user-event": "^14.6.1",
     "axios": "^1.13.2",
     "prop-types": "^15.8.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-redux": "^9.2.0",
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
