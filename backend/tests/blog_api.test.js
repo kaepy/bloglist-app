@@ -195,8 +195,11 @@ describe("when there is initially some blogs saved", () => {
 
       //console.log(blogToModify)
 
+      const authToken = await helper.testUserToken();
+
       await api
         .put(`/api/blogs/${blogToModify.id}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .send(modifiedBlog)
         .expect(200);
 

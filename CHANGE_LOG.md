@@ -2,24 +2,13 @@
 
 ## 7.11: Redux, step2
 
-Tämä ja seuraava kaksi osaa ovat kohtuullisen työläitä, mutta erittäin opettavaisia.
+## chore: update dependencies and add audit script
 
-Siirrä blogien tietojen talletus Reduxiin. Tässä tehtävässä riittää, että sovellus näyttää olemassa olevat blogit ja, että uuden blogin luominen onnistuu.
-
-Kirjautumisen ja uuden blogin luomisen lomakkeiden tilaa kannattaa hallita edelleen Reactin tilan avulla.
-
-## feat: Refactor blog management and user authentication
-
-- Implemented Redux for state management of blogs and notifications.
-- Created blogReducer to handle blog-related actions and asynchronous operations.
-- Added storage service for managing user data in localStorage.
-- Refactored BlogForm to use Redux for creating new blogs and displaying notifications.
-- Updated Bloglist to fetch blogs from Redux state.
-- Enhanced App component to manage user login and logout with improved error handling.
-- Added tests for blogReducer, notificationReducer, and services to ensure functionality.
-- Improved Blog component tests to cover user interactions and state changes.
-- Updated LoginForm to streamline user authentication process.
-- Refactored services to handle API requests with proper authorization.
+- Updated axios from 1.13.2 to 1.13.5
+- Updated @vitest/ui from 4.0.17 to 4.0.18
+- Updated vitest from 4.0.17 to 4.0.18
+- Update lodash from 4.17.21 to 4.17.23
+- Added audit script using better-npm-audit
 
 ## Additional comments
 
