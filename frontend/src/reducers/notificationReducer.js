@@ -18,12 +18,24 @@ const notificationSlice = createSlice({
 // Export the action creator
 const { setNotification, clearNotification } = notificationSlice.actions;
 
+let timeoutId = null;
+
 // Thunk action creator for showing a notification for a specified duration
-export const showNotification = (message, durationInSeconds) => {
+export const showNotification = (
+  message,
+  durationInSeconds,
+  type = "success",
+) => {
   return (dispatch) => {
-    dispatch(setNotification(message));
-    setTimeout(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    dispatch(setNotification({ message, type }));
+
+    timeoutId = setTimeout(() => {
       dispatch(clearNotification());
+      timeoutId = null;
     }, durationInSeconds * 1000);
   };
 };

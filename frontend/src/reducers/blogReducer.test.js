@@ -1,6 +1,11 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import blogService from "../services/blogs";
-import blogReducer, { initializeBlogs, appendBlog } from "./blogReducer.js";
+import blogReducer, {
+  initializeBlogs,
+  appendBlog,
+  voteBlog,
+  destroyBlog,
+} from "./blogReducer.js";
 
 // Mock the blogs service
 vi.mock("../services/blogs");
@@ -41,6 +46,36 @@ describe("BLOG REDUCER", () => {
     expect(newState).toEqual([...initialState, newBlog]);
   });
 
+  test("should handle updateBlog action", () => {
+    const initialState = [
+      { id: "1", title: "Blog 1", likes: 0 },
+      { id: "2", title: "Blog 2", likes: 3 },
+    ];
+    const updatedBlog = { id: "2", title: "Blog 2", likes: 4 };
+    const action = {
+      type: "blogs/updateBlog",
+      payload: updatedBlog,
+    };
+    const newState = blogReducer(initialState, action);
+    expect(newState).toEqual([
+      { id: "1", title: "Blog 1", likes: 0 },
+      updatedBlog,
+    ]);
+  });
+
+  test("should handle deleteBlog action", () => {
+    const initialState = [
+      { id: "1", title: "Blog 1" },
+      { id: "2", title: "Blog 2" },
+    ];
+    const action = {
+      type: "blogs/deleteBlog",
+      payload: "2",
+    };
+    const newState = blogReducer(initialState, action);
+    expect(newState).toEqual([{ id: "1", title: "Blog 1" }]);
+  });
+
   describe("ASYNC THUNKS", () => {
     test("initializeBlogs fetches blogs and dispatches setBlogs", async () => {
       const blogs = [
@@ -61,14 +96,20 @@ describe("BLOG REDUCER", () => {
       });
     });
 
-    test("initializeBlogs throws error when service fails", async () => {
+    test("initializeBlogs dispatches error notification when service fails", async () => {
       blogService.getAll.mockRejectedValue(new Error("Network error"));
 
       const dispatch = vi.fn();
       const thunk = initializeBlogs();
 
-      await expect(thunk(dispatch)).rejects.toThrow("Network error");
-      expect(dispatch).not.toHaveBeenCalled();
+      await thunk(dispatch);
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: "blogs/setBlogs" }),
+      );
+      // showNotification thunk is dispatched
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
     });
 
     test("addBlog creates blog and dispatches createBlog", async () => {
@@ -92,15 +133,91 @@ describe("BLOG REDUCER", () => {
       });
     });
 
-    test("appendBlog throws error when service fails", async () => {
-      const newBlogContent = { title: "New Blog", author: "Author", url: "http://test.com" };
+    test("appendBlog throws error and dispatches notification when service fails", async () => {
+      const newBlogContent = {
+        title: "New Blog",
+        author: "Author",
+        url: "http://test.com",
+      };
       blogService.create.mockRejectedValue(new Error("Unauthorized"));
 
       const dispatch = vi.fn();
       const thunk = appendBlog(newBlogContent);
 
       await expect(thunk(dispatch)).rejects.toThrow("Unauthorized");
-      expect(dispatch).not.toHaveBeenCalled();
+      // showNotification thunk is dispatched (but not createBlog)
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: "blogs/createBlog" }),
+      );
+    });
+
+    test("voteBlog updates blog and dispatches updateBlog", async () => {
+      const blogObject = {
+        id: "1",
+        title: "Blog 1",
+        author: "Author",
+        url: "http://test.com",
+        likes: 6,
+        user: "user1",
+      };
+      const updatedBlog = { ...blogObject, likes: 6 };
+      blogService.update.mockResolvedValue(updatedBlog);
+
+      const dispatch = vi.fn();
+      await voteBlog(blogObject)(dispatch);
+
+      expect(blogService.update).toHaveBeenCalledWith("1", blogObject);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: "blogs/updateBlog",
+        payload: updatedBlog,
+      });
+      // showNotification thunk also dispatched
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    test("voteBlog dispatches error notification when service fails", async () => {
+      const blogObject = { id: "1", title: "Blog 1", likes: 6, user: "user1" };
+      blogService.update.mockRejectedValue(new Error("Server error"));
+
+      const dispatch = vi.fn();
+
+      await expect(voteBlog(blogObject)(dispatch)).rejects.toThrow(
+        "Server error",
+      );
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: "blogs/updateBlog" }),
+      );
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    test("destroyBlog removes blog and dispatches deleteBlog", async () => {
+      blogService.remove.mockResolvedValue({});
+
+      const dispatch = vi.fn();
+      await destroyBlog("1")(dispatch);
+
+      expect(blogService.remove).toHaveBeenCalledWith("1");
+      expect(dispatch).toHaveBeenCalledWith({
+        type: "blogs/deleteBlog",
+        payload: "1",
+      });
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    test("destroyBlog dispatches error notification when service fails", async () => {
+      blogService.remove.mockRejectedValue(new Error("Forbidden"));
+
+      const dispatch = vi.fn();
+
+      await expect(destroyBlog("1")(dispatch)).rejects.toThrow("Forbidden");
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: "blogs/deleteBlog" }),
+      );
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
     });
   });
 });

@@ -140,9 +140,10 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
     await waitFor(() => {
       const state = store.getState();
-      expect(state.notification).toBe(
-        `A new blog "${newBlog.title}" by ${newBlog.author} added`,
-      );
+      expect(state.notification).toEqual({
+        message: `A new blog "${newBlog.title}" by ${newBlog.author} added`,
+        type: "success",
+      });
     });
   });
 });

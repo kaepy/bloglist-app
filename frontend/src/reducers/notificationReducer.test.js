@@ -10,9 +10,9 @@ describe("NOTIFICATION REDUCER", () => {
   test("setNotification sets the message", () => {
     const state = notificationReducer(null, {
       type: "notification/setNotification",
-      payload: "Test message",
+      payload: { message: "Test message", type: "success" },
     });
-    expect(state).toBe("Test message");
+    expect(state).toEqual({ message: "Test message", type: "success" });
   });
 
   test("clearNotification clears the message", () => {
@@ -38,7 +38,7 @@ describe("SHOW NOTIFICATION THUNK", () => {
 
     expect(dispatch).toHaveBeenCalledWith({
       type: "notification/setNotification",
-      payload: "Hello",
+      payload: { message: "Hello", type: "success" },
     });
   });
 
@@ -60,6 +60,30 @@ describe("SHOW NOTIFICATION THUNK", () => {
     vi.advanceTimersByTime(5000);
 
     expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: "notification/clearNotification",
+    });
+  });
+
+  test("new notification cancels previous timeout", () => {
+    const dispatch = vi.fn();
+
+    showNotification("First", 5)(dispatch);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+
+    // 3 seconds in, send a new notification
+    vi.advanceTimersByTime(3000);
+    showNotification("Second", 5)(dispatch);
+    expect(dispatch).toHaveBeenCalledTimes(2);
+
+    // 2 more seconds — the first timeout (5s) would have fired here
+    vi.advanceTimersByTime(2000);
+    // Should NOT have cleared — only 2s into the second notification's 5s timer
+    expect(dispatch).toHaveBeenCalledTimes(2);
+
+    // 3 more seconds — now the second timeout (5s) fires
+    vi.advanceTimersByTime(3000);
+    expect(dispatch).toHaveBeenCalledTimes(3);
     expect(dispatch).toHaveBeenLastCalledWith({
       type: "notification/clearNotification",
     });

@@ -2,9 +2,8 @@ import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
 import { appendBlog } from "../reducers/blogReducer";
-import { showNotification } from "../reducers/notificationReducer";
 
-const BlogForm = () => {
+const BlogForm = ({ togglableRef }) => {
   const dispatch = useDispatch();
 
   const addBlog = async (event) => {
@@ -19,7 +18,7 @@ const BlogForm = () => {
     };
 
     try {
-      // Dispatch action to append the new blog
+      // Dispatch the appendBlog action to create a new blog
       await dispatch(appendBlog(content));
 
       // Clear form fields after successful submission
@@ -27,20 +26,9 @@ const BlogForm = () => {
       event.target.elements.author.value = "";
       event.target.elements.url.value = "";
 
-      // Show notification for successful blog creation
-      dispatch(
-        showNotification(
-          `A new blog "${content.title}" by ${content.author} added`,
-          5,
-        ),
-      );
-    } catch (error) {
-      dispatch(
-        showNotification(
-          error.response?.data?.error || "Failed to create blog. Please log in again.",
-          5,
-        ),
-      );
+      togglableRef?.current?.toggleVisibility(); // Toggle form visibility if ref is provided
+    } catch {
+      // Handle any errors that occur during blog creation
     }
   };
 
@@ -64,6 +52,14 @@ const BlogForm = () => {
       <br />
     </div>
   );
+};
+
+BlogForm.propTypes = {
+  togglableRef: PropTypes.shape({
+    current: PropTypes.shape({
+      toggleVisibility: PropTypes.func,
+    }),
+  }),
 };
 
 export default BlogForm;

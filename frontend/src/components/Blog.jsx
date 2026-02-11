@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
+import { voteBlog, destroyBlog } from "../reducers/blogReducer";
 
-const Blog = ({ user, blog, updateBlog, removeBlog }) => {
+const Blog = ({ user, blog }) => {
   const [showBlogDetail, setShowBlogDetail] = useState(false);
-  //console.log(showBlogDetail)
+
+  const dispatch = useDispatch();
 
   const blogStyle = {
     paddingTop: 10,
@@ -21,34 +24,32 @@ const Blog = ({ user, blog, updateBlog, removeBlog }) => {
     listStyleType: "none",
   };
 
+  // Update blog likes by dispatching the voteBlog action with the updated blog data
   const updateLikes = (event) => {
     event.preventDefault();
-    //console.log('button clicked', event.target)
 
-    const newLikes = blog.likes + 1;
-
-    //console.log('Blog-blog: ', blog)
-
-    updateBlog({
-      id: blog.id,
-      title: blog.title,
-      author: blog.author,
-      url: blog.url,
-      likes: newLikes,
-      user: blog.user?.id,
-    });
+    dispatch(
+      voteBlog({
+        id: blog.id,
+        title: blog.title,
+        author: blog.author,
+        url: blog.url,
+        likes: blog.likes + 1,
+        user: blog.user?.id,
+      }),
+    );
   };
 
+  // Delete blog if the user confirms the action
   const deleteBlog = (event) => {
     event.preventDefault();
-    //console.log('button clicked', event.target)
 
-    removeBlog({
-      id: blog.id,
-      title: blog.title,
-    });
+    if (window.confirm(`Are you sure you want to remove ${blog.title}?`)) {
+      dispatch(destroyBlog(blog.id));
+    }
   };
 
+  // Toggle blog details visibility
   const buttonToggle = () => setShowBlogDetail(!showBlogDetail);
   const buttonLabel = showBlogDetail ? "hide" : "view";
 
@@ -93,12 +94,7 @@ Blog.propTypes = {
     user: PropTypes.shape({
       username: PropTypes.string.isRequired,
       id: PropTypes.string.isRequired,
-    }).isRequired,
-  }).isRequired,
-  updateBlog: PropTypes.func.isRequired,
-  removeBlog: PropTypes.func.isRequired,
-  user: PropTypes.shape({
-    username: PropTypes.string.isRequired,
+    }),
   }).isRequired,
 };
 

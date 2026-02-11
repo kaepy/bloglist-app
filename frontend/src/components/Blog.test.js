@@ -1,135 +1,107 @@
 import React from "react";
+
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import Blog from "./Blog";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
-describe("Blog Component", () => {
-  const blog = {
-    id: "12345",
-    title: "This is Blog title",
-    author: "Blog Author",
-    url: "Blog url",
-    likes: 10,
-    user: {
-      id: "user123",
-      username: "Testi Testinen",
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import blogReducer from "../reducers/blogReducer";
+import notificationReducer from "../reducers/notificationReducer";
+
+import Blog from "./Blog";
+import blogService from "../services/blogs";
+
+vi.mock("../services/blogs", () => ({
+  default: {
+    update: vi.fn(),
+    remove: vi.fn(),
+  },
+}));
+
+const blog = {
+  id: "123",
+  title: "Testing Blog Component",
+  author: "Test Author",
+  url: "http://test.com",
+  likes: 5,
+  user: {
+    username: "testuser",
+    id: "user123",
+  },
+};
+
+const user = { username: "testuser" };
+
+const renderBlog = () => {
+  const store = configureStore({
+    reducer: {
+      blogs: blogReducer,
+      notification: notificationReducer,
     },
-  };
+  });
 
+  render(
+    <Provider store={store}>
+      <Blog user={user} blog={blog} />
+    </Provider>,
+  );
+
+  return store;
+};
+
+describe("Blog Component", () => {
   test("renders title", () => {
-    const userX = { username: "testi" };
-    const component = render(
-      <Blog
-        blog={blog}
-        user={userX}
-        updateBlog={vi.fn()}
-        removeBlog={vi.fn()}
-      />,
-    );
-    expect(component.container).toHaveTextContent(blog.title);
-
-    //screen.debug()
+    renderBlog();
+    expect(
+      screen.getByText("Testing Blog Component", { exact: false }),
+    ).toBeDefined();
   });
 
   test("renders content when view button is pressed", async () => {
-    const userX = {
-      username: "testi",
-    };
+    renderBlog();
+    const userEvt = userEvent.setup();
 
-    const component = render(
-      <Blog
-        blog={blog}
-        user={userX}
-        updateBlog={vi.fn()}
-        removeBlog={vi.fn()}
-      />,
-    );
+    const viewButton = screen.getByText("view", { exact: false });
+    await userEvt.click(viewButton);
 
-    //screen.debug()
-
-    const user = userEvent.setup();
-
-    const viewButton = screen.getByText("view");
-    await user.click(viewButton);
-
-    //screen.debug()
-
-    expect(component.container).toHaveTextContent(blog.url);
-    expect(component.container).toHaveTextContent(blog.likes);
-    expect(component.container).toHaveTextContent(blog.user.username);
-
-    //screen.debug()
+    expect(screen.getByText("author: Test Author")).toBeDefined();
+    expect(screen.getByText("http://test.com", { exact: false })).toBeDefined();
+    expect(screen.getByText("likes: 5", { exact: false })).toBeDefined();
   });
 
   test("renders likes when like button is double clicked", async () => {
-    const likesHandler = vi.fn();
+    const updatedBlog = { ...blog, likes: 6 };
+    blogService.update.mockResolvedValue(updatedBlog);
 
-    const userX = {
-      username: "testi",
-    };
+    renderBlog();
+    const userEvt = userEvent.setup();
 
-    const component = render(
-      <Blog
-        blog={blog}
-        updateBlog={likesHandler}
-        removeBlog={vi.fn()}
-        user={userX}
-      />,
-    );
-
-    //screen.debug()
-
-    const user = userEvent.setup();
-
-    const viewButton = screen.getByText("view");
-    await user.click(viewButton);
-
-    //screen.debug()
-
-    expect(component.container).toHaveTextContent(blog.likes);
+    const viewButton = screen.getByText("view", { exact: false });
+    await userEvt.click(viewButton);
 
     const likeButton = screen.getByText("like");
-    await user.dblClick(likeButton);
+    await userEvt.click(likeButton);
+    await userEvt.click(likeButton);
 
-    //screen.debug()
-
-    //expect(likesHandler.mock.calls).toHaveLength(2)
-    expect(likesHandler).toHaveBeenCalledTimes(2);
+    expect(blogService.update).toHaveBeenCalledTimes(2);
   });
 
   test("calls removeBlog when remove button is clicked", async () => {
-    const removeBlogHandler = vi.fn();
-    const updateBlogHandler = vi.fn();
+    blogService.remove.mockResolvedValue({});
+    window.confirm = vi.fn(() => true);
 
-    const userX = {
-      username: "Testi Testinen", // Same as blog.user.username to show remove button
-    };
+    renderBlog();
+    const userEvt = userEvent.setup();
 
-    render(
-      <Blog
-        blog={blog}
-        updateBlog={updateBlogHandler}
-        removeBlog={removeBlogHandler}
-        user={userX}
-      />,
-    );
+    const viewButton = screen.getByText("view", { exact: false });
+    await userEvt.click(viewButton);
 
-    const user = userEvent.setup();
-
-    // First click view to show the details including remove button
-    const viewButton = screen.getByText("view");
-    await user.click(viewButton);
-
-    // Now click remove button
     const removeButton = screen.getByText("remove");
-    await user.click(removeButton);
+    await userEvt.click(removeButton);
 
-    expect(removeBlogHandler).toHaveBeenCalledTimes(1);
-    expect(removeBlogHandler).toHaveBeenCalledWith({
-      id: blog.id,
-      title: blog.title,
-    });
+    expect(window.confirm).toHaveBeenCalled();
+    expect(blogService.remove).toHaveBeenCalledWith("123");
   });
 });

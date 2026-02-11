@@ -150,9 +150,9 @@ describe("Blog app", function () {
       cy.get("@likeYetBlog").find("#like-button").click();
       cy.get("@likeYetBlog").contains("likes").should("contain", "2");
 
-      cy.get(".blog").eq(0).should("contain", "and title");
+      cy.get(".blog").eq(0).should("contain", "another title");
       cy.get(".blog").eq(1).should("contain", "yet title");
-      cy.get(".blog").eq(2).should("contain", "another title");
+      cy.get(".blog").eq(2).should("contain", "and title");
     });
   });
 });

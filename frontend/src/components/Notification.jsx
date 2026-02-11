@@ -1,29 +1,28 @@
-import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 
 const Notification = () => {
-  const notificationStyle = {
-    color: "green",
-    background: "lightgrey",
+  const notification = useSelector((state) => state.notification); // Get notification from Redux state
+
+  if (!notification) return null; // No notification to display
+
+  // Base style for the notification
+  const baseStyle = {
     fontWeight: "bold",
     fontSize: 16,
     borderStyle: "solid",
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    background: "lightgrey",
   };
 
-  // Get notification message from Redux store
-  const message = useSelector((state) => state.notification);
+  // Dynamic style based on notification type
+  const style = {
+    ...baseStyle,
+    color: notification.type === "error" ? "red" : "green",
+  };
 
-  // Don't render anything if there's no notification
-  if (!message) return null;
-
-  return <div style={notificationStyle}>{message}</div>;
-};
-
-Notification.propTypes = {
-  message: PropTypes.string,
+  return <div style={style}>{notification.message}</div>; // Display the notification message
 };
 
 export default Notification;
