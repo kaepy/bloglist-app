@@ -1,3 +1,29 @@
+/**
+ * @file Blog.test.js
+ * Component integration tests for the Blog component.
+ *
+ * Each test renders the Blog component inside a real Redux Provider
+ * (with a configured store) and simulates user interactions.
+ *
+ * Mock setup:
+ * - blogService.update and blogService.remove are mocked to prevent
+ *   actual HTTP requests while verifying they're called correctly.
+ * - A test user is dispatched to the store so ownership logic works.
+ *
+ * Test coverage:
+ * - Renders title in collapsed view
+ * - Expands details on "view" button click
+ * - Like button calls update service (verifies double-click = 2 calls)
+ * - Remove button triggers confirm dialog and calls remove service
+ *
+ * REFACTORING NOTES:
+ * - The renderBlog helper creates a new store per test, which is good
+ *   for isolation. Consider extracting it into a shared test util.
+ * - The blog and user test data are defined at module scope, meaning
+ *   all tests share the same objects. This is fine for read-only data
+ *   but could cause issues if any test mutates them.
+ */
+
 import React from "react";
 
 import "@testing-library/jest-dom";
@@ -9,10 +35,12 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import blogReducer from "../reducers/blogReducer";
 import notificationReducer from "../reducers/notificationReducer";
+import userReducer, { setUser } from "../reducers/userReducer";
 
 import Blog from "./Blog";
 import blogService from "../services/blogs";
 
+/** Mock blog service to intercept HTTP calls */
 vi.mock("../services/blogs", () => ({
   default: {
     update: vi.fn(),
@@ -20,6 +48,7 @@ vi.mock("../services/blogs", () => ({
   },
 }));
 
+/** Test data: a sample blog owned by testuser */
 const blog = {
   id: "123",
   title: "Testing Blog Component",
@@ -32,19 +61,27 @@ const blog = {
   },
 };
 
+/** The user who owns the test blog */
 const user = { username: "testuser" };
 
+/**
+ * Helper: creates a fresh Redux store, dispatches the test user,
+ * and renders the Blog component with the provided test data.
+ */
 const renderBlog = () => {
   const store = configureStore({
     reducer: {
       blogs: blogReducer,
       notification: notificationReducer,
+      user: userReducer,
     },
   });
 
+  store.dispatch(setUser(user));
+
   render(
     <Provider store={store}>
-      <Blog user={user} blog={blog} />
+      <Blog blog={blog} />
     </Provider>,
   );
 

@@ -1,3 +1,19 @@
+/**
+ * @file blogReducer.test.js
+ * Unit tests for the blog Redux slice (reducer + async thunks).
+ *
+ * Reducer tests dispatch raw action objects to verify state transitions.
+ * Thunk tests mock the blog service and verify that the correct actions
+ * and service calls are made (including error paths).
+ *
+ * Run: npm test -- --testPathPattern=blogReducer.test.js
+ *
+ * REFACTORING NOTES:
+ * - Thunk tests manually create a dispatch mock and call the thunk.
+ *   Consider using @reduxjs/toolkit's configureStore with the reducer
+ *   to test thunks against a real store for higher confidence.
+ */
+
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import blogService from "../services/blogs";
 import blogReducer, {
@@ -7,10 +23,8 @@ import blogReducer, {
   destroyBlog,
 } from "./blogReducer.js";
 
-// Mock the blogs service
+/** Mock the entire blogs service module */
 vi.mock("../services/blogs");
-
-// run only this test file: npm test -- --testPathPattern=blogReducer.test.js
 
 describe("BLOG REDUCER", () => {
   beforeEach(() => {

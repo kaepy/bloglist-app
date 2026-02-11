@@ -1,3 +1,20 @@
+/**
+ * @file commands.js
+ * Custom Cypress commands for common test operations.
+ *
+ * These commands bypass the UI for speed and reliability:
+ * - cy.login(): Authenticates via API and sets localStorage directly
+ * - cy.logout(): Clears the session from localStorage
+ * - cy.createBlog(): Creates a blog via API with the stored JWT token
+ *
+ * REFACTORING NOTES:
+ * - Hard-coded URLs (http://localhost:3001, http://localhost:5173) should
+ *   use Cypress.config('baseUrl') or Cypress.env for portability.
+ * - cy.login() calls cy.visit() after setting localStorage. This ensures
+ *   the app reads the token on mount. If the app already supports
+ *   hot-reloading auth state, the visit could be skipped.
+ */
+
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -24,6 +41,11 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+/**
+ * Log in a user by calling the login API directly (bypasses UI).
+ * Stores the response token in localStorage and reloads the app.
+ */
+
 Cypress.Commands.add("login", ({ username, password }) => {
   cy.request("POST", "http://localhost:3001/api/login", {
     username,
@@ -34,10 +56,12 @@ Cypress.Commands.add("login", ({ username, password }) => {
   });
 });
 
+/** Log out by removing the user token from localStorage */
 Cypress.Commands.add("logout", () => {
   localStorage.removeItem("blogUserKey");
 });
 
+/** Create a blog via the API using the stored JWT (bypasses UI form) */
 Cypress.Commands.add("createBlog", ({ title, author, url }) => {
   cy.request({
     url: "http://localhost:3001/api/blogs",

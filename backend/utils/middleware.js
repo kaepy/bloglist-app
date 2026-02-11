@@ -1,7 +1,33 @@
+/**
+ * @module middleware
+ * Express middleware functions for request logging, authentication,
+ * error handling, and unknown-endpoint responses.
+ *
+ * Middleware execution order (configured in app.js):
+ *   1. requestLogger  - Logs every incoming request
+ *   2. tokenExtractor - Extracts JWT from Authorization header
+ *   3. (route-specific) userExtractor - Decodes token and attaches user
+ *   4. unknownEndpoint - Catches requests that match no route
+ *   5. errorHandler   - Centralized error formatting
+ *
+ * REFACTORING NOTES:
+ * - tokenExtractor and userExtractor could be combined into a single
+ *   middleware applied only to protected routes, reducing the number
+ *   of middleware layers.
+ * - The errorHandler could benefit from a mapping object instead of
+ *   an if/else chain for cleaner extensibility:
+ *     const errorMap = { CastError: 400, ValidationError: 400, ... }
+ */
+
 const logger = require("./logger");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
+/**
+ * Logs the HTTP method, path, and body of every incoming request.
+ * Useful for debugging during development; consider disabling
+ * or reducing verbosity for production.
+ */
 const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method);
   logger.info("Path:  ", request.path);
@@ -10,13 +36,17 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
+/** Returns 404 for any request that doesn't match a defined route. */
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
+/**
+ * Centralized error handler. Maps known Mongoose/JWT error types
+ * to appropriate HTTP status codes and messages. Unrecognized errors
+ * are forwarded to Express's default handler via next().
+ */
 const errorHandler = (error, request, response, next) => {
-  //console.log(error)
-
   logger.error(error.message);
 
   if (error.name === "CastError") {
@@ -36,20 +66,30 @@ const errorHandler = (error, request, response, next) => {
   next(error);
 };
 
+/**
+ * Extracts the JWT Bearer token from the Authorization header
+ * and attaches it to `request.token`. Applied globally so that
+ * downstream route-specific middleware (userExtractor) can use it.
+ *
+ * The HTTP Authorization header format is: "Bearer <token>"
+ * This middleware strips the "Bearer " prefix, leaving only the token string.
+ */
 const tokenExtractor = (request, response, next) => {
-  // hakee authorizationin headerin requestista
   const authorization = request.get("authorization");
 
-  // jos authorization header on olemassa ja alkaa oikealla sanalla
   if (authorization && authorization.startsWith("Bearer ")) {
-    // korvaa requestin authorization Stringistä 'Bearer ' -> '' eli tavallaan poistetaan 'Bearer '-prefix ja jäljelle jää pelkkä token. Juontaa juurensa HTTP:n Authorization headeriin jossa formaatti on <tyyppi> <arvo>. Halutaan siis pelkkä arvo ilman tyyppimäärettä.
     request.token = authorization.replace("Bearer ", "");
   }
 
   next();
 };
 
-// middleware joka hakee käyttäjän tokenin perusteella ja liittää sen requestiin
+/**
+ * Route-level middleware that verifies the JWT token (set by tokenExtractor)
+ * and attaches the corresponding User document to `request.user`.
+ * Applied selectively to routes that require an authenticated user
+ * (e.g., POST/DELETE/PUT on blogs).
+ */
 const userExtractor = async (request, response, next) => {
   try {
     const decodedToken = jwt.verify(request.token, process.env.SECRET);
@@ -63,7 +103,7 @@ const userExtractor = async (request, response, next) => {
 
     next();
   } catch (error) {
-    next(error); // Pass error to error handler middleware
+    next(error);
   }
 };
 

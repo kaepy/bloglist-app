@@ -1,6 +1,44 @@
+/**
+ * @file blog_api.test.js
+ * Integration tests for the Blog and User REST APIs.
+ *
+ * These tests exercise the full HTTP stack using supertest:
+ * - Real Express app (imported from app.js)
+ * - Real MongoDB test database (configured via TEST_MONGODB_URI)
+ * - JWT authentication via helper-generated tokens
+ *
+ * Test structure:
+ *   describe "when there is initially some blogs saved"
+ *     ├─ GET /api/blogs - List blogs
+ *     ├─ POST /api/blogs - Create blogs (with auth)
+ *     ├─ DELETE /api/blogs/:id - Delete blogs (owner + auth checks)
+ *     ├─ PUT /api/blogs/:id - Update blogs (likes)
+ *     └─ describe "when there is initially one user"
+ *         ├─ POST /api/users - Registration success/failure cases
+ *         └─ Validation: unique username, min length, password rules
+ *
+ * Run options:
+ *   npm test -- tests/blog_api.test.js          (by file)
+ *   npm test -- -t 'a specific test name'       (by test name)
+ *   npm test -- -t 'blogs'                      (pattern match)
+ *
+ * REFACTORING NOTES:
+ * - The `bcrypt` import is noted as "removed from use" but is still
+ *   imported at the top. It's used in the user-creation beforeEach.
+ *   Remove the comment or the import if truly unused.
+ * - The `testUser` constant at module scope is never referenced in any test.
+ *   Remove it to avoid confusion.
+ * - Each `beforeEach` wipes and reseeds data, which is correct for isolation
+ *   but makes the suite slow. Consider using transactions for rollback-based
+ *   isolation if test runtime becomes a concern.
+ * - The user tests nest a second beforeEach that conflicts with the outer one
+ *   (both clear User collection). This works but is confusing — consider
+ *   splitting user tests into a separate test file.
+ */
+
 const mongoose = require("mongoose");
 const supertest = require("supertest");
-const bcrypt = require("bcrypt"); //poistettu käytöstä
+const bcrypt = require("bcrypt");
 
 const { test, describe, after, beforeEach } = require("node:test");
 const app = require("../app");
@@ -11,47 +49,29 @@ const assert = require("assert");
 const Blog = require("../models/blog");
 const User = require("../models/user");
 
-/* These are integration tests of the full API:
-- Test actual HTTP endpoints (/api/blogs, /api/users)
-- Need a real Express app running
-- Need a real database to store/retrieve test data
-*/
-
-// npm test -- tests/blog_api.test.js // tiedoston perusteella
-// npm test -- -t 'a specific blog is within the returned blogs' // testin nimen perusteella
-// npm test -- -t 'blogs' // kaikki testit, joiden nimessä on sana blogs
-
-const testUser = {
-  username: "testuser",
-  name: "Test User",
-  password: "password",
-};
-
 describe("when there is initially some blogs saved", () => {
+  // Seed the database with known data before every test for isolation
   beforeEach(async () => {
-    // initialize blogs
     await Blog.deleteMany({});
     await Blog.insertMany(helper.initialBlogs);
 
-    // initialize users
     await User.deleteMany({});
     await User.insertMany(helper.initialUsers);
   });
 
   test("blogs are returned as json", async () => {
-    // supertest osuus
     const response = await api
       .get("/api/blogs")
       .expect(200)
       .expect("Content-Type", /application\/json/);
 
-    // hyödynnetään supertestillä saatua responsea jesti expectissä
+    // Verify the response contains exactly the seeded blogs
     assert.strictEqual(response.body.length, helper.initialBlogs.length);
   });
 
   test("blogs are returned with id property", async () => {
+    // Mongoose toJSON transform should convert _id -> id
     const response = await api.get("/api/blogs").expect(200);
-
     response.body.forEach((blog) => assert(blog.id));
   });
 
@@ -64,7 +84,7 @@ describe("when there is initially some blogs saved", () => {
         likes: 999,
       };
 
-      // Luo kirjautuneen käyttäjän ja sille tokenin joka otetaan talteen
+      // Generate a JWT for the seeded test user
       const authToken = await helper.testUserToken();
 
       const response = await api
@@ -74,19 +94,21 @@ describe("when there is initially some blogs saved", () => {
         .expect(201)
         .expect("Content-Type", /application\/json/);
 
+      // Verify the created blog matches the input
       assert.strictEqual(response.body.title, newBlog.title);
       assert.strictEqual(response.body.author, newBlog.author);
       assert.strictEqual(response.body.url, newBlog.url);
       assert.strictEqual(response.body.likes, newBlog.likes);
 
-      // tarkistetaan että kannassa on yksi blogi enemmän
+      // Verify total blog count increased by one
       const blogsAtEnd = await helper.blogsInDb();
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1);
 
-      // tarkistetaan että uusi blogi löytyy kannasta
+      // Verify the new title exists in the database
       const titles = blogsAtEnd.map((b) => b.title);
       assert(titles.includes("Test is test na naaa naa na na"));
 
+      // Verify the blog is associated with a user
       assert(response.body.user !== null);
     });
 
@@ -95,6 +117,7 @@ describe("when there is initially some blogs saved", () => {
         title: "Test zero",
         author: "Person999",
         url: "url999",
+        // likes intentionally omitted to test default behavior
       };
 
       const authToken = await helper.testUserToken();
@@ -106,14 +129,13 @@ describe("when there is initially some blogs saved", () => {
         .expect(201)
         .expect("Content-Type", /application\/json/);
 
-      // console.log(response.body)
-
       assert.strictEqual(response.body.likes, 0);
     });
 
     test("fails with statuscode 400 if title or url is invalid", async () => {
       const newBlog = {
         author: "Person999",
+        // title and url intentionally omitted — should fail validation
       };
 
       const authToken = await helper.testUserToken();
@@ -124,26 +146,18 @@ describe("when there is initially some blogs saved", () => {
         .send(newBlog)
         .expect(400);
 
+      // Verify that the invalid blog was not saved
       const blogsAtEnd = await helper.blogsInDb();
-
-      // console.log(blogsAtEnd)
-
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
     });
   });
 
   describe("deletion of a blog", () => {
     test("succeeds with status code 204 if id is valid", async () => {
-      // Tehdään kannasta kopio alkutilanteelle ja poimitaan mikä blogi poistetaan
       const blogsAtStart = await helper.blogsInDb();
-      //console.log('blogsAtStart: ', blogsAtStart)
-
       const blogToDelete = blogsAtStart[0];
-      //console.log('blogToDelete: ', blogToDelete.id)
 
-      // Luo kirjautuneen käyttäjän ja sille tokenin joka otetaan talteen
       const authToken = await helper.testUserToken();
-      //console.log('authToken: ', authToken)
 
       await api
         .delete(`/api/blogs/${blogToDelete.id}`)
@@ -152,22 +166,19 @@ describe("when there is initially some blogs saved", () => {
 
       const blogsAtEnd = await helper.blogsInDb();
 
-      // Tarkistetaan että kannassa on yksi blogi vähemmän
+      // Verify blog count decreased by one
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1);
 
-      // Tarkistetaan että poistettua blogia ei enää löydy kannasta
+      // Verify the deleted blog's title no longer exists
       const titles = blogsAtEnd.map((r) => r.title);
       assert(!titles.includes(blogToDelete.title));
     });
 
     test("fails with statuscode 401 if token is missing", async () => {
-      // Tehdään kannasta kopio alkutilanteelle ja poimitaan mikä blogi poistetaan
       const blogsAtStart = await helper.blogsInDb();
-      //console.log('blogsAtStart: ', blogsAtStart)
-
       const blogToDelete = blogsAtStart[0];
-      //console.log('blogToDelete: ', blogToDelete)
 
+      // Send an empty Bearer token to simulate missing authentication
       await api
         .delete(`/api/blogs/${blogToDelete.id}`)
         .set("Authorization", "Bearer ")
@@ -175,10 +186,10 @@ describe("when there is initially some blogs saved", () => {
 
       const blogsAtEnd = await helper.blogsInDb();
 
-      // Tarkistetaan että kannassa on yhtä monta blogia
+      // Verify blog count is unchanged — deletion was rejected
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
 
-      // Tarkistetaan ettei poistettu blogi löytyy kannasta
+      // Verify the blog still exists
       const titles = blogsAtEnd.map((r) => r.title);
       assert(titles.includes(blogToDelete.title));
     });
@@ -192,9 +203,6 @@ describe("when there is initially some blogs saved", () => {
 
       const blogsAtStart = await helper.blogsInDb();
       const blogToModify = blogsAtStart[0];
-
-      //console.log(blogToModify)
-
       const authToken = await helper.testUserToken();
 
       await api
@@ -203,19 +211,18 @@ describe("when there is initially some blogs saved", () => {
         .send(modifiedBlog)
         .expect(200);
 
+      // Verify the likes value was updated in the database
       const blogsAtEnd = await helper.blogsInDb();
       const blogAfterMod = blogsAtEnd[0];
-
-      //console.log(blogAfterMod)
-
       assert.strictEqual(blogAfterMod.likes, modifiedBlog.likes);
     });
   });
 
   describe("when there is initially one user at db", () => {
+    // This beforeEach creates a fresh user with a real bcrypt hash,
+    // separate from the initialUsers seed data used in blog tests
     beforeEach(async () => {
       await User.deleteMany({});
-      //await User.insertMany(helper.initialUsers)
 
       const passwordHash = await bcrypt.hash("sekret", 10);
       const user = new User({ username: "root", passwordHash });

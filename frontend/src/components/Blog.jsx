@@ -1,13 +1,38 @@
+/**
+ * @component Blog
+ * Displays a single blog entry with expandable details.
+ *
+ * Features:
+ * - Collapsed view shows only the title and a "view" toggle button
+ * - Expanded view shows author, url, likes (with like button), and username
+ * - The "remove" button is only visible to the blog's creator
+ *
+ * Props:
+ * - blog: Blog object { id, title, author, url, likes, user }
+ *
+ * REFACTORING NOTES:
+ * - Inline styles (blogStyle, ulStyle) should be moved to a CSS module
+ *   or styled-components for better maintainability and reusability.
+ * - The updateLikes handler reconstructs the full blog object which is
+ *   error-prone. Consider sending only { likes: blog.likes + 1 } and
+ *   letting the backend merge the update (partial update pattern).
+ * - The component reads `user` from Redux to check ownership. This is
+ *   fine but creates a tight coupling. Alternatively, the parent could
+ *   pass an `isOwner` boolean prop.
+ */
+
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import { voteBlog, destroyBlog } from "../reducers/blogReducer";
 
-const Blog = ({ user, blog }) => {
+const Blog = ({ blog }) => {
   const [showBlogDetail, setShowBlogDetail] = useState(false);
 
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
 
+  // Inline styles for blog card layout
   const blogStyle = {
     paddingTop: 10,
     paddingBottom: 10,
@@ -24,7 +49,7 @@ const Blog = ({ user, blog }) => {
     listStyleType: "none",
   };
 
-  // Update blog likes by dispatching the voteBlog action with the updated blog data
+  /** Dispatch a like (increment likes by 1) via the blog reducer thunk */
   const updateLikes = (event) => {
     event.preventDefault();
 
@@ -40,7 +65,7 @@ const Blog = ({ user, blog }) => {
     );
   };
 
-  // Delete blog if the user confirms the action
+  /** Confirm and delete this blog (dispatches destroyBlog thunk) */
   const deleteBlog = (event) => {
     event.preventDefault();
 
@@ -49,7 +74,7 @@ const Blog = ({ user, blog }) => {
     }
   };
 
-  // Toggle blog details visibility
+  // Toggle between collapsed/expanded view
   const buttonToggle = () => setShowBlogDetail(!showBlogDetail);
   const buttonLabel = showBlogDetail ? "hide" : "view";
 
@@ -60,6 +85,7 @@ const Blog = ({ user, blog }) => {
         {" "}
         {buttonLabel}{" "}
       </button>
+      {/* Expanded detail section — only rendered when showBlogDetail is true */}
       {showBlogDetail && (
         <ul style={ulStyle}>
           <li>author: {blog.author}</li>
@@ -71,6 +97,7 @@ const Blog = ({ user, blog }) => {
             </button>
           </li>
           <li>user: {blog.user?.username ?? "unknown"}</li>
+          {/* Only show remove button if the logged-in user is the blog creator */}
           {blog.user && user.username === blog.user.username && (
             <li>
               <button id="remove-button" onClick={deleteBlog}>
@@ -84,6 +111,7 @@ const Blog = ({ user, blog }) => {
   );
 };
 
+/** PropTypes validation — ensures type safety for the blog prop */
 Blog.propTypes = {
   blog: PropTypes.shape({
     id: PropTypes.string.isRequired,

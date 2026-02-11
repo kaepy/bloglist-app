@@ -1,9 +1,26 @@
+/**
+ * @file blogs.test.js
+ * Unit tests for the blog HTTP service layer.
+ *
+ * Axios is fully mocked so no real HTTP requests are made.
+ * The storage service is mocked to return a test JWT token.
+ *
+ * Test coverage:
+ * - getAll: fetches from correct URL, handles errors
+ * - create: sends POST with auth header, handles missing user
+ * - update: sends PUT with auth header, handles errors
+ * - remove: sends DELETE with auth header, handles errors
+ *
+ * REFACTORING NOTE: The "should send undefined token when user is not logged in"
+ * test documents a current behavior (Bearer undefined) that is arguably a bug.
+ * The service should handle null users more gracefully.
+ */
+
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import axios from "axios";
 import blogService from "./blogs";
 import storage from "./storage";
 
-// Mock axios and storage
 vi.mock("axios");
 vi.mock("./storage");
 

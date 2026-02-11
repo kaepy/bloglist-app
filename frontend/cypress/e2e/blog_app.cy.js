@@ -1,8 +1,33 @@
-// 5.23: blogilistan end to end ‑testit, step6
-// Tee testi, joka varmistaa, että blogit järjestetään likejen mukaiseen järjestykseen, eniten likejä saanut blogi ensin.
+/**
+ * @file blog_app.cy.js
+ * Cypress end-to-end tests for the Blog application.
+ *
+ * These tests run against a real frontend (localhost:5173) and backend
+ * (localhost:3001). Before each test, the database is reset via the
+ * /api/testing/reset endpoint and two fresh users are created.
+ *
+ * Test structure:
+ *   - Login form visibility
+ *   - Login success/failure
+ *   - Blog CRUD operations (create, like, delete)
+ *   - Authorization (only creator sees remove button)
+ *   - Sorting by likes
+ *
+ * REFACTORING NOTES:
+ * - `it.only` on the last test means all other "When logged in" tests
+ *   are skipped during normal runs. Remove `.only` to run the full suite.
+ * - The like-button loop (`for (let i = 0; i < 5; i++)`) can be flaky
+ *   because each click triggers an async API call. Add `cy.wait` or
+ *   assert the updated count before clicking again.
+ * - Hard-coded URLs (localhost:5173, localhost:3001) should use
+ *   Cypress.env or cypress.config.js baseUrl for portability.
+ * - Custom commands (cy.login, cy.createBlog, cy.logout) are defined in
+ *   cypress/support/commands.js and bypass the UI for faster setup.
+ */
 
 describe("Blog app", function () {
   beforeEach(function () {
+    // Seed two test users for testing ownership/authorization logic
     const user1 = {
       name: "Himmeli Hommeli",
       username: "himmeli",
@@ -15,8 +40,8 @@ describe("Blog app", function () {
       password: "gommeli",
     };
 
+    // Reset the test database and create fresh users before every test
     cy.request("POST", `${Cypress.env("BACKEND")}/testing/reset`);
-
     cy.request("POST", `${Cypress.env("BACKEND")}/users`, user1);
     cy.request("POST", `${Cypress.env("BACKEND")}/users`, user2);
 
@@ -81,6 +106,7 @@ describe("Blog app", function () {
     });
 
     it("A blog can be liked", function () {
+      // Expand blog details, click like, and verify the count increments
       cy.contains("another title")
         .as("likeBlog")
         .find("#viewhide-button")
@@ -90,7 +116,7 @@ describe("Blog app", function () {
       cy.get("@likeBlog").find("#like-button").click();
 
       cy.contains("New like added to blog another title");
-      // ei välttämättä se paras ratkasu, mutta toimii!
+      // After liking, the blog may re-sort; search from parent to find updated count
       cy.get("@likeBlog").parent().contains("likes").should("contain", "1");
     });
 
@@ -107,6 +133,7 @@ describe("Blog app", function () {
     });
 
     it("Only blog creator can see remove button", function () {
+      // Verify remove button is visible for the creator (himmeli)
       cy.contains("yet title")
         .as("blogToRemove")
         .find("#viewhide-button")
@@ -114,15 +141,18 @@ describe("Blog app", function () {
 
       cy.get("@blogToRemove").find("#remove-button");
 
+      // Log out himmeli and log in gimmeli (different user)
       cy.logout();
       cy.login({ username: "gimmeli", password: "gommeli" });
 
+      // Verify remove button is NOT visible for non-creator
       cy.get("@blogToRemove").find("#viewhide-button").click();
 
       cy.get("@blogToRemove").find("#remove-button").should("not.exist");
     });
 
     it.only("Blogs are sorted by likes", function () {
+      // Expand all three blogs to access their like buttons
       cy.get(".blog")
         .contains("yet title")
         .as("likeYetBlog")
@@ -141,6 +171,8 @@ describe("Blog app", function () {
         .find("#viewhide-button")
         .click();
 
+      // Like "another" 5 times, "yet" 2 times, "and" 0 times
+      // Then verify DOM order matches descending like count
       for (let i = 0; i < 5; i++) {
         cy.get("@likeAnotherBlog").find("#like-button").click();
       }

@@ -40,3 +40,17 @@ npm test -- --coverage --collectCoverageFrom='src/\*_/_.{jsx,js}'
 
 - `npm-check-updates` tarkista riippuvuuksien ajantasaisuus
 - `ncu -u` pakettien päivitys
+
+## Manual testing
+
+- login
+- refresh (user persisted)
+- logout
+- open blog details
+- hide blog details
+- open multiple blog details same time
+- vote blog
+- vote other blog no change the blog list's order
+- remove-button visibility (only shown for own blogs)
+- remove blog
+- multiple notifications

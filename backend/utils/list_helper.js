@@ -1,100 +1,109 @@
-const _ = require('lodash')
+/**
+ * @module list_helper
+ * Pure utility functions for blog statistics and analytics.
+ * Used by unit tests and potentially by API endpoints that need
+ * aggregated blog data.
+ *
+ * REFACTORING NOTES:
+ * - Remove commented-out code (dummy function, console.logs, alternative solution)
+ *   to keep the module clean. Dead code belongs in version control history.
+ * - The functions don't handle empty-array edge cases consistently:
+ *   totalLikes([]) returns 0 (correct), but favoriteBlog([]), mostBlogs([]),
+ *   and mostLikes([]) will throw because reduce() on an empty array with no
+ *   initial value throws a TypeError. Add guards or initial values.
+ * - Consider replacing lodash groupBy with native Object.groupBy (ES2024+)
+ *   or at minimum importing only the needed lodash functions
+ *   (e.g., lodash/groupBy) to reduce bundle size.
+ */
 
-// 4.3 DUMMY TEST
-//const dummy = (blogs) => {
-//  return 1
-//}
+const _ = require("lodash");
 
-// 4.4 TOTAL LIKES CASES
+/**
+ * Calculate the total number of likes across all blogs.
+ * @param {Array} blogs - Array of blog objects, each with a `likes` property
+ * @returns {number} Sum of all likes (0 for an empty array)
+ */
 const totalLikes = (blogs) => {
-  return blogs.reduce((summa, blog) => summa + blog.likes, 0)
-}
+  return blogs.reduce((sum, blog) => sum + blog.likes, 0);
+};
 
-// 4.5 FAVORITE BLOG
+/**
+ * Find the blog with the most likes.
+ * @param {Array} blogs - Non-empty array of blog objects
+ * @returns {Object} Object with title, author, and likes of the top blog
+ */
 const favoriteBlog = (blogs) => {
-  const mostVotes = blogs.reduce((prev, current) => (+prev.likes > +current.likes) ? prev : current)
+  const mostVotes = blogs.reduce((prev, current) =>
+    +prev.likes > +current.likes ? prev : current,
+  );
 
-  const partialMostVotes = {
+  return {
     title: mostVotes.title,
     author: mostVotes.author,
     likes: mostVotes.likes,
-  }
+  };
+};
 
-  return partialMostVotes
-}
-
-// 4.6* AUTHOR WITH MOST BLOGS
+/**
+ * Find the author who has written the most blogs.
+ * Groups blogs by author, counts unique titles per author,
+ * then returns the author with the highest count.
+ * @param {Array} blogs - Non-empty array of blog objects
+ * @returns {Object} { author: string, blogs: number }
+ */
 const mostBlogs = (blogs) => {
-  // grouppaa blogit authorin mukaan
-  const byAuthors = _.groupBy(blogs, 'author')
-  //console.log('byAuthors', byAuthors)
+  const byAuthors = _.groupBy(blogs, "author");
 
   // _.keys - palauttaa listan objektin kaikista keystä
   // _.map - luo uuden taulun with the results of a called function for every array element
-  const result = Object.keys(byAuthors).map(author => {
+  // _.groupBy - ryhmittelee taulukon elementit annetun avaimen perusteella ja palauttaa objektin, jossa avaimina ovat ryhmittelyarvot ja arvoina taulukot niistä elementeistä, jotka kuuluvat kuhunkin ryhmään
 
-    // _.groupBy(mitä, minkä mukaan) palauttaa objektit jossa saman authorin titlet ryhmitelty nippuun
-    const byUniqueBlogs = _.groupBy(byAuthors[author], 'title')
-    //console.log('byUniqueBlogs', byUniqueBlogs)
+  const result = Object.keys(byAuthors).map((author) => {
+    // Group by title to count only unique blog entries per author
+    const byUniqueBlogs = _.groupBy(byAuthors[author], "title");
 
     return {
-      'author': author,
-      'blogs': Object.keys(byUniqueBlogs).length,
-    }
-  })
-  //console.log('result', result)
+      author: author,
+      blogs: Object.keys(byUniqueBlogs).length,
+    };
+  });
 
-  const mostBlogs = result.reduce((max, current) => max.blogs > current.blogs ? max : current)
-  //console.log('mostBlogs', mostBlogs)
+  // Find the author with the maximum number of blogs
+  return result.reduce((max, current) =>
+    max.blogs > current.blogs ? max : current,
+  );
+};
 
-  return mostBlogs
-}
-
-// 4.7* AUTHOR WITH MOST LIKES
+/**
+ * Find the author whose blogs have the most total likes.
+ * Groups blogs by author, sums likes per author, then
+ * returns the author with the highest total.
+ * @param {Array} blogs - Non-empty array of blog objects
+ * @returns {Object} { author: string, likes: number }
+ */
 const mostLikes = (blogs) => {
+  const byAuthors = _.groupBy(blogs, "author");
 
-  // grouppaa blogit authorin mukaan
-  const byAuthors = _.groupBy(blogs, 'author')
-  //console.log('byAuthors', byAuthors)
-
-  const result = Object.keys(byAuthors).map(author => {
-
-    // lasketaan authorien liket yhteen
-    const totalLikes = byAuthors[author].reduce((sum, current) => sum + current.likes, 0)
-    //console.log('totalLikes', totalLikes)
+  const result = Object.keys(byAuthors).map((author) => {
+    const totalLikes = byAuthors[author].reduce(
+      (sum, current) => sum + current.likes,
+      0,
+    );
 
     return {
-      'author': author,
-      'likes': totalLikes
-    }
-  })
-  //console.log('result', result)
+      author: author,
+      likes: totalLikes,
+    };
+  });
 
-  const mostLikes = result.reduce((max, current) => max.likes > current.likes ? max : current)
-  //console.log('mostLikes', mostLikes)
-
-  return mostLikes
-
-}
-
-// Additional solution
-/*
-result = _(blogs)
-  .groupBy('Author')
-  .map((array, key) => ({
-    'author': key,
-    'blogs': _.uniqBy(array, 'Title').length,
-    'likes': _.sumBy(array, 'Likes')
-  }))
-  .value()
-
-console.log(result)
-*/
+  return result.reduce((max, current) =>
+    max.likes > current.likes ? max : current,
+  );
+};
 
 module.exports = {
-  //dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
   mostLikes,
-}
+};

@@ -1,3 +1,19 @@
+/**
+ * @component LoginForm
+ * Controlled form for user authentication.
+ * Manages username and password state locally, then delegates the
+ * actual login action to the parent via the handleLogin callback.
+ *
+ * Clears both fields after submission regardless of success/failure.
+ *
+ * REFACTORING NOTES:
+ * - The form clears on submit even if login fails, which loses the
+ *   user's typed username. Consider clearing only on success.
+ * - Add HTML5 `required` attributes for basic browser-level validation.
+ * - The `name` attributes ("Username", "Password") use Title Case which
+ *   is unconventional. Standard practice is lowercase ("username", "password").
+ */
+
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -5,7 +21,7 @@ const LoginForm = ({ handleLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  // Login function to authenticate user
+  /** Submit credentials and clear form fields */
   const handleAuth = (event) => {
     event.preventDefault();
     handleLogin({ username, password });
@@ -46,11 +62,7 @@ const LoginForm = ({ handleLogin }) => {
 };
 
 LoginForm.propTypes = {
-  handleAuth: PropTypes.func.isRequired,
-  setUsername: PropTypes.func.isRequired,
-  setPassword: PropTypes.func.isRequired,
-  username: PropTypes.string.isRequired,
-  password: PropTypes.string.isRequired,
+  handleLogin: PropTypes.func.isRequired,
 };
 
 export default LoginForm;

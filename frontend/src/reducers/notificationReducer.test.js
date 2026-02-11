@@ -1,3 +1,18 @@
+/**
+ * @file notificationReducer.test.js
+ * Unit tests for the notification Redux slice and the showNotification thunk.
+ *
+ * Reducer tests verify state transitions for setNotification and clearNotification.
+ * Thunk tests use vi.useFakeTimers() to precisely control setTimeout behavior
+ * and verify that notifications auto-dismiss at the correct time.
+ *
+ * Key scenarios tested:
+ * - Initial state is null
+ * - Setting and clearing notifications
+ * - Auto-dismiss timing with fake timers
+ * - New notifications correctly cancel previous timeouts
+ */
+
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import notificationReducer, { showNotification } from "./notificationReducer";
 

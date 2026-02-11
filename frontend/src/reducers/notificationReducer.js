@@ -1,26 +1,53 @@
+/**
+ * @module reducers/notificationReducer
+ * Redux Toolkit slice for managing UI notification state.
+ *
+ * State shape: null | { message: string, type: 'success' | 'error' }
+ *
+ * The showNotification thunk handles auto-dismissal timing and cancels
+ * any previously scheduled timeout to prevent stale notifications from
+ * clearing a newer one.
+ *
+ * REFACTORING NOTES:
+ * - The module-level `timeoutId` variable works but couples the thunk
+ *   to module state, making it harder to test in isolation. Consider
+ *   using Redux middleware (e.g., redux-thunk with getState) or an
+ *   AbortController pattern for cleaner timeout management.
+ * - The `type` parameter defaults to 'success' — consider using an
+ *   enum/constant object (e.g., NOTIFICATION_TYPES) to avoid typos.
+ */
+
 import { createSlice } from "@reduxjs/toolkit";
 
-// Create a slice for notification management
 const notificationSlice = createSlice({
   name: "notification",
   initialState: null,
   reducers: {
-    // Action to set the notification message
+    /** Set the current notification message and type */
     setNotification(state, action) {
       return action.payload;
     },
+    /** Clear the notification (reset to null) */
     clearNotification() {
       return null;
     },
   },
 });
 
-// Export the action creator
 const { setNotification, clearNotification } = notificationSlice.actions;
 
+/** Module-level timeout handle — used to cancel previous auto-dismiss timers */
 let timeoutId = null;
 
-// Thunk action creator for showing a notification for a specified duration
+/**
+ * Thunk: Show a notification for a specified duration, then auto-dismiss.
+ * If called while a previous notification is still visible, the old timeout
+ * is cancelled so the new notification gets its full display time.
+ *
+ * @param {string} message - The text to display
+ * @param {number} durationInSeconds - How long before auto-dismiss
+ * @param {string} type - 'success' (default) or 'error'
+ */
 export const showNotification = (
   message,
   durationInSeconds,

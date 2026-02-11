@@ -1,3 +1,21 @@
+/**
+ * @file list_helper.test.js
+ * Unit tests for the list_helper utility functions.
+ *
+ * Unlike blog_api.test.js, these are pure unit tests that don't need
+ * a database or HTTP server. They test in-memory data transformations.
+ *
+ * Each describe block provides its own test data array to keep tests
+ * independent and self-documenting.
+ *
+ * REFACTORING NOTES:
+ * - The blog data arrays are duplicated across describe blocks. Consider
+ *   extracting them into shared constants at the top of the file
+ *   (e.g., `const sixBlogs = [...]`) to reduce ~120 lines of repetition.
+ * - Add edge-case tests for empty arrays on favoriteBlog, mostBlogs,
+ *   and mostLikes — these currently throw on empty input.
+ */
+
 const listHelper = require("../utils/list_helper");
 const { test, describe } = require("node:test");
 const assert = require("assert");

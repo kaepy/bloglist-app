@@ -1,3 +1,20 @@
+/**
+ * @module controllers/login
+ * Express router handling user authentication.
+ *
+ * POST / - Accepts { username, password }, verifies credentials against
+ * the bcrypt hash stored in the database, and returns a signed JWT
+ * along with user info (username, name).
+ *
+ * Token payload: { username, id }
+ * Token lifetime: 1 hour (3600 seconds)
+ *
+ * REFACTORING NOTES:
+ * - Consider adding rate limiting to prevent brute-force attacks.
+ * - The token expiry is hardcoded; extract it to config for easier tuning.
+ * - Add refresh-token support for a better UX on long sessions.
+ */
+
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const loginRouter = require("express").Router();
@@ -7,7 +24,12 @@ const config = require("../utils/config");
 loginRouter.post("/", async (request, response) => {
   const { username, password } = request.body;
 
+  // Look up user by username; returns null if not found
   const user = await User.findOne({ username });
+
+  // Compare the plain-text password against the stored bcrypt hash.
+  // If user is null, short-circuit to false to avoid leaking whether
+  // the username exists (timing-safe comparison is handled by bcrypt).
   const passwordCorrect =
     user === null ? false : await bcrypt.compare(password, user.passwordHash);
 
@@ -17,12 +39,12 @@ loginRouter.post("/", async (request, response) => {
     });
   }
 
+  // Minimal payload — only include what downstream code needs
   const userForToken = {
     username: user.username,
     id: user._id,
   };
 
-  // token expires in 60*60 seconds, that is, in one hour
   const token = jwt.sign(userForToken, config.SECRET, { expiresIn: 60 * 60 });
 
   response

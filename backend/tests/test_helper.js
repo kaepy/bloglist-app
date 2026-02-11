@@ -1,7 +1,34 @@
+/**
+ * @module tests/test_helper
+ * Shared test utilities and seed data for backend integration tests.
+ *
+ * Provides:
+ * - initialBlogs / initialUsers: Seed data inserted before each test
+ * - nonExistingId: Generates a valid-format MongoDB ID that doesn't exist
+ * - blogsInDb / usersInDb: Snapshot helpers to read current DB state
+ * - testUserToken: Creates a JWT for the first seeded user (for auth tests)
+ *
+ * REFACTORING NOTES:
+ * - The initialUsers entry has `passwordHash: null`, which means this user
+ *   cannot actually log in via the login endpoint. This is fine because
+ *   testUserToken() bypasses password validation by signing a token directly.
+ *   However, it's confusing — consider documenting this explicitly or
+ *   providing a proper hashed password.
+ * - nonExistingId() creates a Blog with { content: 'willremovethissoon' },
+ *   but the Blog schema requires `title`, not `content`. This may silently
+ *   fail or create an invalid document. Fix the field name to `title`.
+ * - Hard-coded _id values couple tests to specific MongoDB ObjectIds.
+ *   This is intentional (to set up user-blog relationships) but fragile.
+ */
+
 const Blog = require("../models/blog");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
+/**
+ * Seed blog data for tests. Both blogs are authored by the same user
+ * (linked via the `user` field matching initialUsers[0]._id).
+ */
 const initialBlogs = [
   {
     title: "The Lord of the Blogs",
@@ -23,6 +50,12 @@ const initialBlogs = [
   },
 ];
 
+/**
+ * Seed user data. The blogs array contains ObjectIds matching initialBlogs
+ * entries, establishing the user-blog ownership relationship.
+ * Note: passwordHash is null — this user can only be authenticated via
+ * testUserToken(), which signs a JWT directly without password verification.
+ */
 const initialUsers = [
   {
     username: "testi",
@@ -33,46 +66,48 @@ const initialUsers = [
   },
 ];
 
+/**
+ * Generate a valid-format MongoDB ObjectId that doesn't exist in the DB.
+ * Creates a temporary document, immediately deletes it, and returns the ID.
+ */
 const nonExistingId = async () => {
   const blog = new Blog({ content: "willremovethissoon" });
   await blog.save();
-  await blog.deleteOne(); // Changed from .remove()
+  await blog.deleteOne();
 
   return blog._id.toString();
 };
 
+/** Return all blogs currently in the test database as plain JSON objects */
 const blogsInDb = async () => {
   const blogs = await Blog.find({});
   return blogs.map((blog) => blog.toJSON());
 };
 
+/** Return all users currently in the test database as plain JSON objects */
 const usersInDb = async () => {
   const users = await User.find({});
   return users.map((user) => user.toJSON());
 };
 
+/**
+ * Generate a valid JWT for the first user in the test database.
+ * This bypasses the login flow entirely — no password is needed because
+ * the token is signed directly with the user's ID and the app's SECRET.
+ * The token expires in 1 hour, matching the production login behavior.
+ */
 const testUserToken = async () => {
-  // haetaan kaikki userit testikannasta
   const users = await usersInDb();
-  //console.log('users : ', users)
-
-  // käytetään ekaa käyttäjää
   const testUser = users[0];
-  //console.log('testUser : ', testUser)
 
-  // apumuuttuja tokenin luomista varten
   const userForToken = {
     username: testUser.username,
     id: testUser.id,
   };
-  //console.log('userForToken: ', userForToken)
 
-  // Salasanaa ei tarvita - pelkkä token riittää
-  // Luodaan metodin avulla token
   const token = jwt.sign(userForToken, process.env.SECRET, {
     expiresIn: 60 * 60,
   });
-  //console.log('helper token: ', token)
 
   return token;
 };

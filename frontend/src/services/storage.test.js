@@ -1,3 +1,14 @@
+/**
+ * @file storage.test.js
+ * Unit tests for the localStorage abstraction service.
+ *
+ * Uses the real localStorage (provided by jsdom/happy-dom in the test
+ * environment). Each test clears localStorage in beforeEach for isolation.
+ *
+ * Tests verify save/load/getUsername/remove operations and edge cases
+ * (e.g., loading when no data is stored).
+ */
+
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import storage from "./storage";
 

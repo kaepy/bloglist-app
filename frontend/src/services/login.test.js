@@ -1,3 +1,11 @@
+/**
+ * @file login.test.js
+ * Unit tests for the login HTTP service.
+ *
+ * Axios is mocked to verify correct endpoint usage and error propagation
+ * without making real network requests.
+ */
+
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import axios from "axios";
 import loginService from "./login";
