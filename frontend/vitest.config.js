@@ -24,9 +24,11 @@ export default defineConfig({
     },
   },
   test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: [],
-    css: true,
+    globals: true, // Enable global test APIs like `describe`, `test`, and `expect`
+    environment: "jsdom", // Use jsdom for testing React components
+    setupFiles: [], // Add any setup files if needed
+    css: true, // Enable CSS support in tests
+    isolate: true, // Ensure test isolation
+    mockReset: true, // Reset mocks between tests
   },
 });

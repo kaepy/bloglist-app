@@ -1,25 +1,12 @@
 import Blog from "./Blog";
-import BlogForm from "./BlogForm";
-import Togglable from "./Togglable";
 import PropTypes from "prop-types";
+import { useSelector } from "react-redux";
 
-const Bloglist = ({
-  blogFormRef,
-  user,
-  blogs,
-  logout,
-  createBlog,
-  updateBlog,
-  removeBlog,
-}) => {
+const Bloglist = ({ user, updateBlog, removeBlog }) => {
+  const blogs = useSelector((state) => state.blogs);
+
   return (
     <div>
-      <p>
-        {user.name} logged in{" "}
-        <button id="logout-button" onClick={logout}>
-          logout
-        </button>
-      </p>
       {[...blogs]
         .sort((a, b) => a.likes - b.likes)
         .map((blog) => (
@@ -31,21 +18,16 @@ const Bloglist = ({
             removeBlog={removeBlog}
           />
         ))}
-      <Togglable buttonLabel="new blog" ref={blogFormRef}>
-        <BlogForm createBlog={createBlog} />
-      </Togglable>
     </div>
   );
 };
 
 Bloglist.propTypes = {
-  blogFormRef: PropTypes.object.isRequired,
   user: PropTypes.shape({
     name: PropTypes.string.isRequired,
     username: PropTypes.string.isRequired,
   }).isRequired,
   blogs: PropTypes.array.isRequired,
-  logout: PropTypes.func.isRequired,
   createBlog: PropTypes.func.isRequired,
   updateBlog: PropTypes.func.isRequired,
   removeBlog: PropTypes.func.isRequired,

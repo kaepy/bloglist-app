@@ -1,24 +1,47 @@
-import { useState } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
-const BlogForm = ({ createBlog }) => {
-  const [newTitle, setNewTitle] = useState("");
-  const [newAuthor, setNewAuthor] = useState("");
-  const [newUrl, setNewUrl] = useState("");
+import { appendBlog } from "../reducers/blogReducer";
+import { showNotification } from "../reducers/notificationReducer";
 
-  const addBlog = (event) => {
+const BlogForm = () => {
+  const dispatch = useDispatch();
+
+  const addBlog = async (event) => {
+    // Prevent default form submission behavior
     event.preventDefault();
-    //console.log('button clicked', event.target)
 
-    createBlog({
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl,
-    });
+    // Create blog content from form inputs
+    const content = {
+      title: event.target.elements.title.value,
+      author: event.target.elements.author.value,
+      url: event.target.elements.url.value,
+    };
 
-    setNewTitle("");
-    setNewAuthor("");
-    setNewUrl("");
+    try {
+      // Dispatch action to append the new blog
+      await dispatch(appendBlog(content));
+
+      // Clear form fields after successful submission
+      event.target.elements.title.value = "";
+      event.target.elements.author.value = "";
+      event.target.elements.url.value = "";
+
+      // Show notification for successful blog creation
+      dispatch(
+        showNotification(
+          `A new blog "${content.title}" by ${content.author} added`,
+          5,
+        ),
+      );
+    } catch (error) {
+      dispatch(
+        showNotification(
+          error.response?.data?.error || "Failed to create blog. Please log in again.",
+          5,
+        ),
+      );
+    }
   };
 
   return (
@@ -26,31 +49,13 @@ const BlogForm = ({ createBlog }) => {
       <h2>Create new blog</h2>
       <form onSubmit={addBlog}>
         <div>
-          title:{" "}
-          <input
-            id="title"
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            placeholder="placeholder title"
-          />
+          title: <input id="title" placeholder="placeholder title" />
         </div>
         <div>
-          author:{" "}
-          <input
-            id="author"
-            value={newAuthor}
-            onChange={(event) => setNewAuthor(event.target.value)}
-            placeholder="placeholder author"
-          />
+          author: <input id="author" placeholder="placeholder author" />
         </div>
         <div>
-          url:{" "}
-          <input
-            id="url"
-            value={newUrl}
-            onChange={(event) => setNewUrl(event.target.value)}
-            placeholder="placeholder url"
-          />
+          url: <input id="url" placeholder="placeholder url" />
         </div>
         <button id="create-button" type="submit">
           create
@@ -59,10 +64,6 @@ const BlogForm = ({ createBlog }) => {
       <br />
     </div>
   );
-};
-
-BlogForm.propTypes = {
-  createBlog: PropTypes.func.isRequired,
 };
 
 export default BlogForm;

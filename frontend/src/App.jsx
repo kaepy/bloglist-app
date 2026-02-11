@@ -1,92 +1,72 @@
 import { useState, useEffect, useRef } from "react";
+
+import { useDispatch, useSelector } from "react-redux";
+import { showNotification } from "./reducers/notificationReducer";
+import { initializeBlogs } from "./reducers/blogReducer";
+
 import blogService from "./services/blogs";
 import loginService from "./services/login";
+import storage from "./services/storage";
+
 import LoginForm from "./components/LoginForm";
 import Notification from "./components/Notification";
 import Error from "./components/Error";
 import Bloglist from "./components/Bloglist";
-
-import { useDispatch, useSelector } from "react-redux";
-import { showNotification } from "./reducers/notificationReducer";
+import Togglable from "./components/Togglable";
+import BlogForm from "./components/BlogForm";
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); // Get the dispatch function from Redux
 
-  const notificationMessage = useSelector((state) => state.notification);
+  const notificationMessage = useSelector((state) => state.notification); // Get the notification message from Redux state
 
+  // Initialize blogs when the component mounts
+  useEffect(() => {
+    dispatch(initializeBlogs());
+  }, [dispatch]);
+
+  // Check for logged-in user in local storage on component mount
+  useEffect(() => {
+    const user = storage.loadUser();
+    if (user) {
+      setUser(user);
+    }
+  }, []);
+
+  // Ref for the blog form to toggle its visibility after creating a new blog
   const blogFormRef = useRef();
 
-  useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs));
-  }, []);
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser");
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(user);
-      blogService.setToken(user.token);
-    }
-  }, []);
-
-  // Console: window.localStorage
-  const handleLogin = async (event) => {
-    event.preventDefault();
-
+  // Login function to authenticate user and show a welcome message
+  const handleLogin = async (credentials) => {
     try {
-      const user = await loginService.login({
-        username,
-        password,
-      });
-
-      window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user));
-      blogService.setToken(user.token);
+      const user = await loginService.login(credentials);
       setUser(user);
+      storage.saveUser(user);
       dispatch(showNotification(`Welcome ${user.username}!`, 5));
-      setUsername("");
-      setPassword("");
-    } catch {
-      handleErrorChange("Ups! Wrong credentials. Try again :)");
-    }
-  };
-
-  const logout = () => {
-    // removeItem ottaa vastaan vaan keyn
-    // ei palauta promisea nii ei oo mitään awaitattavaa
-    // window. ei ole pakollinen perinteisissä react appeissa (esim. frontti app), mutta sitä tarvittasiin esimerkisksi server side renderingissä. Windowin käyttö on kuitenkin yleisesti ottaen yhteensopivampi tapa joten sen käytöstä ei ole haittaakaan.
-    window.localStorage.removeItem("loggedBlogappUser");
-    blogService.setToken(null);
-    setUser(null);
-
-    dispatch(showNotification("See you again!", 5));
-  };
-
-  const addBlog = async (blogObject) => {
-    try {
-      blogFormRef.current.toggleVisibility();
-      const returnedBlog = await blogService.create(blogObject);
-      setBlogs(blogs.concat(returnedBlog));
-
-      dispatch(
-        showNotification(
-          `A new blog ${blogObject.title} by ${blogObject.author} added`,
-          5,
-        ),
-      );
     } catch (error) {
-      handleErrorChange(
-        error.response?.data?.error || "Failed to add blog. Please try again.",
-      );
+      handleErrorChange("Oops! Wrong credentials. Try again :)", error);
     }
   };
 
+  // Logout function to clear user session and show a goodbye message
+  const handleLogout = () => {
+    setUser(null);
+    storage.removeUser();
+    dispatch(showNotification(`See you again ${user.name}!`, 5));
+  };
+
+  // REFACTOR
+  const handleCreate = async (blog) => {
+    const newBlog = await blogService.create(blog);
+    setBlogs(blogs.concat(newBlog));
+    notify(`Blog created: ${newBlog.title}, ${newBlog.author}`);
+    blogFormRef.current.toggleVisibility();
+  };
+
+  // REFACTOR
   const updateBlog = async (blogObject) => {
     try {
       const returnedBlog = await blogService.update(blogObject.id, blogObject);
@@ -105,6 +85,7 @@ const App = () => {
     }
   };
 
+  // REFACTOR
   const removeBlog = async (blogObject) => {
     if (
       window.confirm(`Are you sure you want to remove ${blogObject.title} ?`)
@@ -123,6 +104,7 @@ const App = () => {
     }
   };
 
+  // REFACTOR
   const handleErrorChange = (error) => {
     setErrorMessage(error);
     setTimeout(() => {
@@ -130,34 +112,34 @@ const App = () => {
     }, 5000);
   };
 
+  // If no user is logged in, show the login form and notifications
+  if (!user) {
+    return (
+      <div>
+        <h2>blogs</h2>
+        <Notification message={notificationMessage} />
+        <Error message={errorMessage} />
+        <LoginForm handleLogin={handleLogin} />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h2>blogs</h2>
-
+      <h2>Blogs</h2>
       <Notification message={notificationMessage} />
       <Error message={errorMessage} />
 
-      {!user && (
-        <LoginForm
-          handleLogin={handleLogin}
-          username={username}
-          setUsername={setUsername}
-          password={password}
-          setPassword={setPassword}
-        />
-      )}
+      <div>
+        {user.name} logged in
+        <button onClick={handleLogout}>logout</button>
+      </div>
 
-      {user && (
-        <Bloglist
-          blogFormRef={blogFormRef}
-          user={user}
-          blogs={blogs}
-          logout={logout}
-          createBlog={addBlog}
-          updateBlog={updateBlog}
-          removeBlog={removeBlog}
-        />
-      )}
+      <Bloglist user={user} updateBlog={updateBlog} removeBlog={removeBlog} />
+
+      <Togglable buttonLabel="New blog" ref={blogFormRef}>
+        <BlogForm handleCreate={handleCreate} />
+      </Togglable>
     </div>
   );
 };

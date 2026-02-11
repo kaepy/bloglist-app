@@ -1,46 +1,32 @@
 import axios from "axios";
+import storage from "./storage";
+
 const baseUrl = "/api/blogs";
 
-let token = null;
+// Service for handling blog-related operations
 
-const setToken = (newToken) => {
-  token = `Bearer ${newToken}`;
-};
+const getToken = () => ({
+  headers: { Authorization: `Bearer ${storage.loadUser()?.token}` },
+});
 
 const getAll = () => {
-  const config = {
-    headers: { Authorization: token },
-  };
-  const request = axios.get(baseUrl, config);
+  const request = axios.get(baseUrl);
   return request.then((response) => response.data);
 };
 
 const create = async (newObject) => {
-  const config = { headers: { Authorization: token } };
-
-  const response = await axios.post(baseUrl, newObject, config);
-
+  const response = await axios.post(baseUrl, newObject, getToken());
   return response.data;
 };
 
 const update = async (id, newObject) => {
-  const config = { headers: { Authorization: token } };
-
-  //console.log("blogs-id: ", id);
-  //console.log("blogs-newObject: ", newObject);
-
-  const response = await axios.put(`${baseUrl}/${id}`, newObject, config);
-  //console.log("blogs-response: ", response.data);
-  return response.data;
+  const request = axios.put(`${baseUrl}/${id}`, newObject, getToken());
+  return request.then((response) => response.data);
 };
 
 const remove = async (id) => {
-  const config = { headers: { Authorization: token } };
-  //console.log('config: ', config)
-
-  const response = await axios.delete(`${baseUrl}/${id}`, config);
-  //console.log('response: ', response.data)
+  const response = await axios.delete(`${baseUrl}/${id}`, getToken());
   return response.data;
 };
 
-export default { getAll, setToken, create, update, remove };
+export default { getAll, create, update, remove };

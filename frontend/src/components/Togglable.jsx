@@ -7,10 +7,12 @@ const Togglable = forwardRef((props, ref) => {
   const hideWhenVisible = { display: visible ? "none" : "" };
   const showWhenVisible = { display: visible ? "" : "none" };
 
+  // Function to toggle visibility state
   const toggleVisibility = () => {
     setVisible(!visible);
   };
 
+  // Expose toggleVisibility method to parent components
   useImperativeHandle(ref, () => {
     return {
       toggleVisibility,
@@ -29,6 +31,8 @@ const Togglable = forwardRef((props, ref) => {
     </div>
   );
 });
+
+Togglable.displayName = "Togglable"; // For better debugging in React DevTools
 
 Togglable.propTypes = {
   buttonLabel: PropTypes.string.isRequired,
