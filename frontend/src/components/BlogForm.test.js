@@ -162,6 +162,7 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
       expect(mockShowNotification).toHaveBeenCalledWith(
         `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
         5,
+        "success",
       );
     });
   });
