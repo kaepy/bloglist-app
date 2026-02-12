@@ -36,14 +36,13 @@ import BlogForm from "./components/BlogForm";
 const App = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
+  const blogFormRef = useRef(); // Ref for the blog form to control its visibility
 
   // On mount: fetch all blogs from API and restore user session from localStorage
   useEffect(() => {
     dispatch(initializeBlogs());
     dispatch(initializeUser());
   }, [dispatch]);
-
-  const blogFormRef = useRef(); // Ref for the blog form to control its visibility
 
   // Login function to authenticate user and show a welcome message
   const handleLogin = async (credentials) => {

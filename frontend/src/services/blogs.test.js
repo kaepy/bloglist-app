@@ -37,18 +37,25 @@ describe("BLOGS SERVICE", () => {
         { id: 1, title: "Blog 1" },
         { id: 2, title: "Blog 2" },
       ];
-      axios.get.mockResolvedValue({ data: blogs });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(blogs),
+      });
 
       const result = await blogService.getAll();
 
-      expect(axios.get).toHaveBeenCalledWith("/api/blogs");
+      expect(fetch).toHaveBeenCalledWith("/api/blogs");
       expect(result).toEqual(blogs);
     });
 
     test("should propagate error when request fails", async () => {
-      axios.get.mockRejectedValue(new Error("Network error"));
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+      });
 
-      await expect(blogService.getAll()).rejects.toThrow("Network error");
+      await expect(blogService.getAll()).rejects.toThrow(
+        "Failed to fetch blogs",
+      );
     });
   });
 
@@ -60,27 +67,41 @@ describe("BLOGS SERVICE", () => {
         url: "http://test.com",
       };
       const createdBlog = { id: 1, ...newBlog };
-      axios.post.mockResolvedValue({ data: createdBlog });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(createdBlog),
+      });
 
       const result = await blogService.create(newBlog);
 
-      expect(axios.post).toHaveBeenCalledWith("/api/blogs", newBlog, {
-        headers: { Authorization: "Bearer token123" },
+      expect(fetch).toHaveBeenCalledWith("/api/blogs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token123",
+        },
+        body: JSON.stringify(newBlog),
       });
       expect(result).toEqual(createdBlog);
     });
 
     test("should send undefined token when user is not logged in", async () => {
       storage.loadUser.mockReturnValue(null);
-      axios.post.mockResolvedValue({ data: {} });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
 
       await blogService.create({ title: "Test" });
 
-      expect(axios.post).toHaveBeenCalledWith(
-        "/api/blogs",
-        { title: "Test" },
-        { headers: { Authorization: "Bearer undefined" } },
-      );
+      expect(fetch).toHaveBeenCalledWith("/api/blogs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer undefined",
+        },
+        body: JSON.stringify({ title: "Test" }),
+      });
     });
   });
 

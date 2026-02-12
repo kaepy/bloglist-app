@@ -27,6 +27,7 @@ import { vi } from "vitest";
 
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import blogReducer from "../reducers/blogReducer";
 import notificationReducer from "../reducers/notificationReducer";
 import userReducer from "../reducers/userReducer";
@@ -37,9 +38,11 @@ vi.mock("../services/blogs", () => ({
     create: vi.fn(),
     getAll: vi.fn(),
   },
+  create: vi.fn(),
+  getAll: vi.fn(),
 }));
 
-import blogService from "../services/blogs";
+import { create } from "../services/blogs";
 
 describe("TESTING NEW BLOG FORM COMPONENT", () => {
   const newBlog = {
@@ -50,8 +53,10 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
   test("<BlogForm /> create new blog", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    blogService.create.mockResolvedValue(createdBlog);
+    create.mockResolvedValue(createdBlog);
 
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["blogs"], []);
     const store = configureStore({
       reducer: {
         blogs: blogReducer,
@@ -63,9 +68,11 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     const user = userEvent.setup();
 
     render(
-      <Provider store={store}>
-        <BlogForm />
-      </Provider>,
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <BlogForm />
+        </Provider>
+      </QueryClientProvider>,
     );
 
     //screen.debug()
@@ -85,7 +92,9 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     // Wait for async dispatch to complete
     await waitFor(() => {
       // Verify blog service was called with correct data
-      expect(blogService.create).toHaveBeenCalledWith({
+      // React Query passes mutation context as second arg, so check first arg only
+      expect(create).toHaveBeenCalled();
+      expect(create.mock.calls[0][0]).toEqual({
         title: newBlog.title,
         author: newBlog.author,
         url: newBlog.url,
@@ -95,8 +104,10 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
   test("form clears after submission", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    blogService.create.mockResolvedValue(createdBlog);
+    create.mockResolvedValue(createdBlog);
 
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["blogs"], []);
     const store = configureStore({
       reducer: {
         blogs: blogReducer,
@@ -108,9 +119,11 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     const user = userEvent.setup();
 
     render(
-      <Provider store={store}>
-        <BlogForm />
-      </Provider>,
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <BlogForm />
+        </Provider>
+      </QueryClientProvider>,
     );
 
     const title = screen.getByPlaceholderText("placeholder title");
@@ -132,8 +145,10 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
   test("notification is displayed after submission", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    blogService.create.mockResolvedValue(createdBlog);
+    create.mockResolvedValue(createdBlog);
 
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["blogs"], []);
     const store = configureStore({
       reducer: {
         blogs: blogReducer,
@@ -145,9 +160,11 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     const user = userEvent.setup();
 
     render(
-      <Provider store={store}>
-        <BlogForm />
-      </Provider>,
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <BlogForm />
+        </Provider>
+      </QueryClientProvider>,
     );
 
     const title = screen.getByPlaceholderText("placeholder title");
@@ -163,7 +180,7 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     await waitFor(() => {
       const state = store.getState();
       expect(state.notification).toEqual({
-        message: `A new blog "${newBlog.title}" by ${newBlog.author} added`,
+        message: `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
         type: "success",
       });
     });

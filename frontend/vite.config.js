@@ -1,3 +1,13 @@
+/**
+ * Vite configuration for the frontend application.
+ *
+ * - Registers the React plugin for JSX/TSX support.
+ * - Proxies API requests to the backend during development.
+ * - Configures Vitest with JSDOM, globals, and setup file.
+ *
+ * @type {import('vite').UserConfig}
+ */
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 

@@ -24,10 +24,40 @@
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
-import { appendBlog } from "../reducers/blogReducer";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { create } from "../services/blogs";
+
+import { showNotification } from "../reducers/notificationReducer";
 
 const BlogForm = ({ togglableRef }) => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+
+  // useMutation hook for creating a new blog entry
+  const newBlogMutation = useMutation({
+    mutationFn: create,
+    onSuccess: (newBlog) => {
+      const blogs = queryClient.getQueryData(["blogs"]);
+      queryClient.setQueryData(["blogs"], blogs.concat(newBlog));
+
+      dispatch(
+        showNotification(
+          `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
+          5,
+          "success",
+        ),
+      );
+    },
+    onError: (error) => {
+      dispatch(
+        showNotification(
+          `Error creating blog: ${error.response?.data?.error || error.message}`,
+          5,
+          "error",
+        ),
+      );
+    },
+  });
 
   /** Handle form submission: create blog, clear inputs, toggle form visibility */
   const addBlog = async (event) => {
@@ -41,7 +71,8 @@ const BlogForm = ({ togglableRef }) => {
     };
 
     try {
-      await dispatch(appendBlog(content));
+      //await dispatch(appendBlog(content));
+      newBlogMutation.mutate(content);
 
       // Clear form fields after successful creation
       event.target.elements.title.value = "";

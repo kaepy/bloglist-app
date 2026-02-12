@@ -25,15 +25,36 @@ const getToken = () => ({
 });
 
 /** Fetch all blogs (public, no auth required) */
-const getAll = async () => {
-  const response = await axios.get(baseUrl);
-  return response.data;
+export const getAll = async () => {
+  //const response = await axios.get(baseUrl);
+  //return response.data;
+
+  const response = await fetch(baseUrl);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch blogs");
+  }
+
+  return await response.json();
 };
 
 /** Create a new blog (requires authentication) */
-const create = async (newObject) => {
-  const response = await axios.post(baseUrl, newObject, getToken());
-  return response.data;
+export const create = async (newObject) => {
+  //const response = await axios.post(baseUrl, newObject, getToken());
+
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getToken().headers },
+    body: JSON.stringify(newObject),
+  };
+
+  const response = await fetch(baseUrl, options);
+
+  if (!response.ok) {
+    throw new Error("Failed to create blog");
+  }
+
+  return await response.json();
 };
 
 /** Update an existing blog by ID (requires authentication) */
