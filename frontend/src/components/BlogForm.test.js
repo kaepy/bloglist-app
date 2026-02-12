@@ -5,9 +5,9 @@
  * Tests verify that:
  * - Submitting the form calls blogService.create with correct data
  * - Form fields are cleared after successful submission
- * - A success notification is dispatched to the Redux store
+ * - A success notification is shown via NotificationContext
  *
- * Each test creates its own Redux store for isolation and uses
+ * Each test creates its own QueryClient for isolation and uses
  * @testing-library/react for DOM queries and user interaction simulation.
  *
  * REFACTORING NOTES:
@@ -25,12 +25,7 @@ import BlogForm from "./BlogForm";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import blogReducer from "../reducers/blogReducer";
-import notificationReducer from "../reducers/notificationReducer";
-import userReducer from "../reducers/userReducer";
 
 /** Mock the blog service — must be called before importing the module */
 vi.mock("../services/blogs", () => ({
@@ -42,6 +37,15 @@ vi.mock("../services/blogs", () => ({
   getAll: vi.fn(),
 }));
 
+/** Mock the useNotification hook */
+const mockShowNotification = vi.fn();
+vi.mock("../hooks/useNotification", () => ({
+  useNotification: () => ({
+    notification: "",
+    showNotification: mockShowNotification,
+  }),
+}));
+
 import { create } from "../services/blogs";
 
 describe("TESTING NEW BLOG FORM COMPONENT", () => {
@@ -51,27 +55,22 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     url: "Blog url",
   };
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   test("<BlogForm /> create new blog", async () => {
     const createdBlog = { id: 1, ...newBlog };
     create.mockResolvedValue(createdBlog);
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);
-    const store = configureStore({
-      reducer: {
-        blogs: blogReducer,
-        notification: notificationReducer,
-        user: userReducer,
-      },
-    });
 
     const user = userEvent.setup();
 
     render(
       <QueryClientProvider client={queryClient}>
-        <Provider store={store}>
-          <BlogForm />
-        </Provider>
+        <BlogForm />
       </QueryClientProvider>,
     );
 
@@ -108,21 +107,12 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);
-    const store = configureStore({
-      reducer: {
-        blogs: blogReducer,
-        notification: notificationReducer,
-        user: userReducer,
-      },
-    });
 
     const user = userEvent.setup();
 
     render(
       <QueryClientProvider client={queryClient}>
-        <Provider store={store}>
-          <BlogForm />
-        </Provider>
+        <BlogForm />
       </QueryClientProvider>,
     );
 
@@ -149,21 +139,12 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);
-    const store = configureStore({
-      reducer: {
-        blogs: blogReducer,
-        notification: notificationReducer,
-        user: userReducer,
-      },
-    });
 
     const user = userEvent.setup();
 
     render(
       <QueryClientProvider client={queryClient}>
-        <Provider store={store}>
-          <BlogForm />
-        </Provider>
+        <BlogForm />
       </QueryClientProvider>,
     );
 
@@ -178,11 +159,10 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     await user.click(createButton);
 
     await waitFor(() => {
-      const state = store.getState();
-      expect(state.notification).toEqual({
-        message: `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
-        type: "success",
-      });
+      expect(mockShowNotification).toHaveBeenCalledWith(
+        `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
+        5,
+      );
     });
   });
 });

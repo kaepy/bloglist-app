@@ -77,13 +77,13 @@ describe("USER REDUCER", () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
 
-    test("loginUser calls login service, saves user, and dispatches setUser and notification", async () => {
+    test("loginUser calls login service, saves user, and dispatches setUser", async () => {
       const credentials = { username: "testuser", password: "secret" };
       const user = { username: "testuser", name: "Test User", token: "abc123" };
       loginService.login.mockResolvedValue(user);
 
       const dispatch = vi.fn();
-      await loginUser(credentials)(dispatch);
+      const result = await loginUser(credentials)(dispatch);
 
       expect(loginService.login).toHaveBeenCalledWith(credentials);
       expect(storage.saveUser).toHaveBeenCalledWith(user);
@@ -91,8 +91,8 @@ describe("USER REDUCER", () => {
         type: "user/setUser",
         payload: user,
       });
-      // showNotification thunk also dispatched
-      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+      // Returns user so caller can show notification via context
+      expect(result).toEqual(user);
     });
 
     test("loginUser throws when login service fails", async () => {
@@ -108,20 +108,20 @@ describe("USER REDUCER", () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
 
-    test("logoutUser dispatches setUser(null), removes storage, and dispatches notification", () => {
+    test("logoutUser dispatches setUser(null), removes storage, and returns user", () => {
       const user = { username: "testuser", name: "Test User" };
       const dispatch = vi.fn();
       const getState = vi.fn(() => ({ user }));
 
-      logoutUser()(dispatch, getState);
+      const result = logoutUser()(dispatch, getState);
 
       expect(dispatch).toHaveBeenCalledWith({
         type: "user/setUser",
         payload: null,
       });
       expect(storage.removeUser).toHaveBeenCalledTimes(1);
-      // showNotification thunk also dispatched
-      expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
+      // Returns user so caller can show notification via context
+      expect(result).toEqual(user);
     });
   });
 });

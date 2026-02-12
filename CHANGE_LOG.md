@@ -1,18 +1,15 @@
 # CHANGE LOGS
 
-## 7.11: React Query ja context step2
+## 7.10: React Query ja context step1
 
-Siirrä blogien tietojen hallinnointi tapahtumaan React Query ‑kirjastoa hyväksikäyttäen. Tässä tehtävässä riittää, että sovellus näyttää olemassa olevat blogit ja, että uuden blogin luominen onnistuu.
-
-Kirjautumisen ja uuden blogin luomisen lomakkeiden tilaa kannattaa hallita edelleen Reactin tilan avulla.
+Muuta tässä tehtävässä notifikaation tilanhallinta tapahtumaan käyttäen useReducer-hookia ja contextia.
 
 ## Small fixes
 
-- Refactor blog management to use React Query for data fetching and mutation
-- Update App, BlogForm and Bloglist components
-- Refactor Blog service and BlogForm tests
+- Refactor notification handling to use NotificationContext and custom hook
+- Remove Redux dependency for notifications
 
 ## Known issues
 
 - The token expiration is only discovered when making an API call. The frontend doesn't know the token is invalid until the backend rejects it.
-- Voting doesn't update blog order instantly
+- Voting and removing blog doesn't work

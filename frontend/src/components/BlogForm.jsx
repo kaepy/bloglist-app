@@ -21,17 +21,16 @@
  *   error or display a user-facing message.
  */
 
-import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "../services/blogs";
 
-import { showNotification } from "../reducers/notificationReducer";
+import { useNotification } from "../hooks/useNotification";
 
 const BlogForm = ({ togglableRef }) => {
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
 
   // useMutation hook for creating a new blog entry
   const newBlogMutation = useMutation({
@@ -40,21 +39,17 @@ const BlogForm = ({ togglableRef }) => {
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(["blogs"], blogs.concat(newBlog));
 
-      dispatch(
-        showNotification(
-          `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
-          5,
-          "success",
-        ),
+      showNotification(
+        `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
+        5,
+        "success",
       );
     },
     onError: (error) => {
-      dispatch(
-        showNotification(
-          `Error creating blog: ${error.response?.data?.error || error.message}`,
-          5,
-          "error",
-        ),
+      showNotification(
+        `Error creating blog: ${error.response?.data?.error || error.message}`,
+        5,
+        "error",
       );
     },
   });

@@ -28,7 +28,6 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import blogService from "../services/blogs";
-import { showNotification } from "./notificationReducer";
 
 const blogsSlice = createSlice({
   name: "blogs",
@@ -60,84 +59,34 @@ const { setBlogs, createBlog, updateBlog, deleteBlog } = blogsSlice.actions;
 /** Thunk: Fetch all blogs from the server and populate the store */
 export const initializeBlogs = () => {
   return async (dispatch) => {
-    try {
-      const blogs = await blogService.getAll();
-      dispatch(setBlogs(blogs));
-    } catch (error) {
-      dispatch(
-        showNotification(
-          `Error loading blogs: ${error.response?.data?.error || error.message}`,
-          5,
-          "error",
-        ),
-      );
-    }
+    const blogs = await blogService.getAll();
+    dispatch(setBlogs(blogs));
   };
 };
 
 /** Thunk: Create a new blog via the API and add it to the store */
 export const appendBlog = (content) => {
   return async (dispatch) => {
-    try {
-      const newBlog = await blogService.create(content);
-      dispatch(createBlog(newBlog));
-      dispatch(
-        showNotification(
-          `A new blog "${newBlog.title}" by ${newBlog.author} added`,
-          5,
-        ),
-      );
-      return newBlog;
-    } catch (error) {
-      dispatch(
-        showNotification(
-          `Error creating blog: ${error.response?.data?.error || error.message}`,
-          5,
-          "error",
-        ),
-      );
-      throw error;
-    }
+    const newBlog = await blogService.create(content);
+    dispatch(createBlog(newBlog));
+    return newBlog;
   };
 };
 
 /** Thunk: Increment likes on a blog via the API and update the store */
 export const voteBlog = (blogObject) => {
   return async (dispatch) => {
-    try {
-      const updatedBlog = await blogService.update(blogObject.id, blogObject);
-      dispatch(updateBlog(updatedBlog));
-      dispatch(showNotification(`You liked '${updatedBlog.title}'`, 5));
-    } catch (error) {
-      dispatch(
-        showNotification(
-          `Error: ${error.response?.data?.error || error.message}`,
-          5,
-          "error",
-        ),
-      );
-      throw error;
-    }
+    const updatedBlog = await blogService.update(blogObject.id, blogObject);
+    dispatch(updateBlog(updatedBlog));
+    return updatedBlog;
   };
 };
 
 /** Thunk: Delete a blog via the API and remove it from the store */
 export const destroyBlog = (id) => {
   return async (dispatch) => {
-    try {
-      await blogService.remove(id);
-      dispatch(deleteBlog(id));
-      dispatch(showNotification("Blog removed successfully", 5));
-    } catch (error) {
-      dispatch(
-        showNotification(
-          `Error: ${error.response?.data?.error || error.message}`,
-          5,
-          "error",
-        ),
-      );
-      throw error;
-    }
+    await blogService.remove(id);
+    dispatch(deleteBlog(id));
   };
 };
 

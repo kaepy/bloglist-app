@@ -23,9 +23,9 @@
 import { useEffect, useRef } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
-import { showNotification } from "./reducers/notificationReducer";
 import { initializeBlogs } from "./reducers/blogReducer";
 import { initializeUser, loginUser, logoutUser } from "./reducers/userReducer";
+import { useNotification } from "./hooks/useNotification";
 
 import LoginForm from "./components/LoginForm";
 import Notification from "./components/Notification";
@@ -37,6 +37,7 @@ const App = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const blogFormRef = useRef(); // Ref for the blog form to control its visibility
+  const { showNotification } = useNotification();
 
   // On mount: fetch all blogs from API and restore user session from localStorage
   useEffect(() => {
@@ -47,22 +48,21 @@ const App = () => {
   // Login function to authenticate user and show a welcome message
   const handleLogin = async (credentials) => {
     try {
-      await dispatch(loginUser(credentials));
+      const user = await dispatch(loginUser(credentials));
+      showNotification(`Welcome back, ${user.name}!`, 5, "success");
     } catch (error) {
-      dispatch(
-        showNotification(
-          error.response?.data?.error ||
-            "Oops! Wrong credentials. Try again :)",
-          5,
-          "error",
-        ),
+      showNotification(
+        error.response?.data?.error || "Oops! Wrong credentials. Try again :)",
+        5,
+        "error",
       );
     }
   };
 
   /** Clear user session from Redux store and localStorage */
   const handleLogout = () => {
-    dispatch(logoutUser());
+    const loggedOutUser = dispatch(logoutUser());
+    showNotification(`See you again ${loggedOutUser.name}!`, 5, "success");
   };
 
   // Unauthenticated view: show only the login form

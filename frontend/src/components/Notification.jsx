@@ -1,6 +1,6 @@
 /**
  * @component Notification
- * Displays a styled notification banner from the Redux store.
+ * Displays a styled notification banner from the NotificationContext.
  * Returns null when there is no active notification, rendering nothing.
  *
  * The notification type ('success' or 'error') determines the text color:
@@ -14,10 +14,10 @@
  * - A fade-out animation would improve UX (CSS transition or framer-motion).
  */
 
-import { useSelector } from "react-redux";
+import { useNotification } from "../hooks/useNotification";
 
 const Notification = () => {
-  const notification = useSelector((state) => state.notification);
+  const { notification } = useNotification();
 
   if (!notification) return null;
 

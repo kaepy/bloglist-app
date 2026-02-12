@@ -21,7 +21,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import loginService from "../services/login";
 import storage from "../services/storage";
-import { showNotification } from "./notificationReducer";
 
 const userSlice = createSlice({
   name: "user",
@@ -52,7 +51,7 @@ export const loginUser = (credentials) => {
     const user = await loginService.login(credentials);
     storage.saveUser(user);
     dispatch(setUser(user));
-    dispatch(showNotification(`Welcome back, ${user.name}`, 5));
+    return user; // Return user so caller can show notification via context
   };
 };
 
@@ -66,7 +65,7 @@ export const logoutUser = () => {
     const user = getState().user;
     dispatch(setUser(null));
     storage.removeUser();
-    dispatch(showNotification(`See you again ${user.name}!`, 5));
+    return user; // Return user so caller can show notification via context
   };
 };
 
