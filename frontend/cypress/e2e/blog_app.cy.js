@@ -27,7 +27,7 @@
 
 describe("Blog app", function () {
   beforeEach(function () {
-    // Seed two test users for testing ownership/authorization logic
+    // Initialize two test users for testing ownership/authorization logic
     const user1 = {
       name: "Himmeli Hommeli",
       username: "himmeli",

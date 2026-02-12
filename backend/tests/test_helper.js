@@ -1,12 +1,12 @@
 /**
  * @module tests/test_helper
- * Shared test utilities and seed data for backend integration tests.
+ * Shared test utilities and initial data for backend integration tests.
  *
  * Provides:
- * - initialBlogs / initialUsers: Seed data inserted before each test
+ * - initialBlogs / initialUsers: Initial data inserted before each test
  * - nonExistingId: Generates a valid-format MongoDB ID that doesn't exist
  * - blogsInDb / usersInDb: Snapshot helpers to read current DB state
- * - testUserToken: Creates a JWT for the first seeded user (for auth tests)
+ * - testUserToken: Creates a JWT for the first initialized user (for auth tests)
  *
  * REFACTORING NOTES:
  * - The initialUsers entry has `passwordHash: null`, which means this user
@@ -26,7 +26,7 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
 /**
- * Seed blog data for tests. Both blogs are authored by the same user
+ * Initial blog data for tests. Both blogs are authored by the same user
  * (linked via the `user` field matching initialUsers[0]._id).
  */
 const initialBlogs = [
@@ -51,7 +51,7 @@ const initialBlogs = [
 ];
 
 /**
- * Seed user data. The blogs array contains ObjectIds matching initialBlogs
+ * Initial user data. The blogs array contains ObjectIds matching initialBlogs
  * entries, establishing the user-blog ownership relationship.
  * Note: passwordHash is null — this user can only be authenticated via
  * testUserToken(), which signs a JWT directly without password verification.

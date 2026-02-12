@@ -11,8 +11,8 @@
  * - update: sends PUT with auth header, handles errors
  * - remove: sends DELETE with auth header, handles errors
  *
- * REFACTORING NOTE: The "should send undefined token when user is not logged in"
- * test documents a current behavior (Bearer undefined) that is arguably a bug.
+ * REFACTORING NOTE:
+ * The "should send undefined token when user is not logged in" test documents a current behavior (Bearer undefined) that is arguably a bug.
  * The service should handle null users more gracefully.
  */
 

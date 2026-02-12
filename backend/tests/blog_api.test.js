@@ -28,7 +28,7 @@
  *   Remove the comment or the import if truly unused.
  * - The `testUser` constant at module scope is never referenced in any test.
  *   Remove it to avoid confusion.
- * - Each `beforeEach` wipes and reseeds data, which is correct for isolation
+ * - Each `beforeEach` wipes and reinitializes data, which is correct for isolation
  *   but makes the suite slow. Consider using transactions for rollback-based
  *   isolation if test runtime becomes a concern.
  * - The user tests nest a second beforeEach that conflicts with the outer one
@@ -50,7 +50,7 @@ const Blog = require("../models/blog");
 const User = require("../models/user");
 
 describe("when there is initially some blogs saved", () => {
-  // Seed the database with known data before every test for isolation
+  // Initialize the database with known data before every test for isolation
   beforeEach(async () => {
     await Blog.deleteMany({});
     await Blog.insertMany(helper.initialBlogs);
@@ -65,7 +65,7 @@ describe("when there is initially some blogs saved", () => {
       .expect(200)
       .expect("Content-Type", /application\/json/);
 
-    // Verify the response contains exactly the seeded blogs
+    // Verify the response contains exactly the ed blogs
     assert.strictEqual(response.body.length, helper.initialBlogs.length);
   });
 
@@ -84,7 +84,7 @@ describe("when there is initially some blogs saved", () => {
         likes: 999,
       };
 
-      // Generate a JWT for the seeded test user
+      // Generate a JWT for the initialized test user
       const authToken = await helper.testUserToken();
 
       const response = await api
@@ -219,8 +219,7 @@ describe("when there is initially some blogs saved", () => {
   });
 
   describe("when there is initially one user at db", () => {
-    // This beforeEach creates a fresh user with a real bcrypt hash,
-    // separate from the initialUsers seed data used in blog tests
+    // This beforeEach creates a fresh user with a real bcrypt hash, separate from the initialUsers data used in blog tests
     beforeEach(async () => {
       await User.deleteMany({});
 
