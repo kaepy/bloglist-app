@@ -6,67 +6,56 @@
  * All mutating operations (create, update, remove) include a JWT
  * Bearer token from localStorage for authentication.
  * The getAll operation is public and does not require authentication.
- * getToken() returns `Bearer undefined` when no user is logged in, which will cause 401 errors for purpose.
  *
- * REFACTORING NOTES:
- *   Pick one style for consistency (prefer async/await).
- * - getToken() returns `Bearer undefined` when no user is logged in, which will cause 401 errors. Consider returning null and letting the caller handle unauthenticated state explicitly.
- * - The baseUrl could be pulled from an environment variable for flexibility across deployment environments.
+ * Authentication is handled via getAuthHeaders(), which returns an empty
+ * object when no user is logged in, causing 401 errors on protected endpoints.
+ *
+ * Uses a centralized request() helper with async/await for all API calls,
+ * providing consistent error handling and response parsing.
  */
 
-import axios from "axios";
 import storage from "./storage";
 
 const baseUrl = "/api/blogs";
 
-/** Build the Authorization header object using the stored JWT */
-const getToken = () => ({
-  headers: { Authorization: `Bearer ${storage.loadUser()?.token}` },
-});
-
-/** Fetch all blogs (public, no auth required) */
-export const getAll = async () => {
-  //const response = await axios.get(baseUrl);
-  //return response.data;
-
-  const response = await fetch(baseUrl);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch blogs");
-  }
-
-  return await response.json();
+const getAuthHeaders = () => {
+  const token = storage.loadUser()?.token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-/** Create a new blog (requires authentication) */
-export const create = async (newObject) => {
-  //const response = await axios.post(baseUrl, newObject, getToken());
+/**
+ * Centralized fetch wrapper with error handling.
+ * - Parses error body with fallback for non-JSON responses (e.g., HTML error pages)
+ * - Returns null for 204 No Content to avoid JSON parse error on empty body
+ */
+const request = async (url, options = {}) => {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed: ${response.status}`);
+  }
+  if (response.status === 204) return null;
+  return response.json();
+};
 
-  const options = {
+export const getAll = () => request(baseUrl);
+
+export const create = (newObject) =>
+  request(baseUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...getToken().headers },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(newObject),
-  };
+  });
 
-  const response = await fetch(baseUrl, options);
+export const update = (id, newObject) =>
+  request(`${baseUrl}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(newObject),
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to create blog");
-  }
-
-  return await response.json();
-};
-
-/** Update an existing blog by ID (requires authentication) */
-const update = async (id, newObject) => {
-  const response = await axios.put(`${baseUrl}/${id}`, newObject, getToken());
-  return response.data;
-};
-
-/** Delete a blog by ID (requires authentication, owner only) */
-const remove = async (id) => {
-  const response = await axios.delete(`${baseUrl}/${id}`, getToken());
-  return response.data;
-};
-
-export default { getAll, create, update, remove };
+export const remove = (id) =>
+  request(`${baseUrl}/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });

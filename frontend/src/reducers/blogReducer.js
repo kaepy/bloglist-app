@@ -27,7 +27,7 @@
  */
 
 import { createSlice } from "@reduxjs/toolkit";
-import blogService from "../services/blogs";
+import * as blogService from "../services/blogs";
 
 const blogsSlice = createSlice({
   name: "blogs",
@@ -43,9 +43,7 @@ const blogsSlice = createSlice({
     },
     /** Replace a blog in the array with its updated version (by ID match) */
     updateBlog(state, action) {
-      return state.map((blog) =>
-        blog.id === action.payload.id ? action.payload : blog,
-      );
+      return state.map((blog) => (blog.id === action.payload.id ? action.payload : blog));
     },
     /** Remove a blog from the array by ID */
     deleteBlog(state, action) {

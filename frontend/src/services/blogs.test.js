@@ -17,11 +17,9 @@
  */
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import axios from "axios";
-import blogService from "./blogs";
+import { getAll, create, update, remove } from "./blogs";
 import storage from "./storage";
 
-vi.mock("axios");
 vi.mock("./storage");
 
 describe("BLOGS SERVICE", () => {
@@ -42,20 +40,20 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve(blogs),
       });
 
-      const result = await blogService.getAll();
+      const result = await getAll();
 
-      expect(fetch).toHaveBeenCalledWith("/api/blogs");
+      expect(fetch).toHaveBeenCalledWith("/api/blogs", {});
       expect(result).toEqual(blogs);
     });
 
     test("should propagate error when request fails", async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: "Failed to fetch blogs" }),
       });
 
-      await expect(blogService.getAll()).rejects.toThrow(
-        "Failed to fetch blogs",
-      );
+      await expect(getAll()).rejects.toThrow("Failed to fetch blogs");
     });
   });
 
@@ -72,7 +70,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve(createdBlog),
       });
 
-      const result = await blogService.create(newBlog);
+      const result = await create(newBlog);
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs", {
         method: "POST",
@@ -85,20 +83,19 @@ describe("BLOGS SERVICE", () => {
       expect(result).toEqual(createdBlog);
     });
 
-    test("should send undefined token when user is not logged in", async () => {
+    test("should not send Authorization header when user is not logged in", async () => {
       storage.loadUser.mockReturnValue(null);
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({}),
       });
 
-      await blogService.create({ title: "Test" });
+      await create({ title: "Test" });
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer undefined",
         },
         body: JSON.stringify({ title: "Test" }),
       });
@@ -108,39 +105,59 @@ describe("BLOGS SERVICE", () => {
   describe("UPDATE BLOGS", () => {
     test("should update a blog with authorization header", async () => {
       const updatedBlog = { id: 1, title: "Updated Blog", likes: 5 };
-      axios.put.mockResolvedValue({ data: updatedBlog });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(updatedBlog),
+      });
 
-      const result = await blogService.update(1, updatedBlog);
+      const result = await update(1, updatedBlog);
 
-      expect(axios.put).toHaveBeenCalledWith("/api/blogs/1", updatedBlog, {
-        headers: { Authorization: "Bearer token123" },
+      expect(fetch).toHaveBeenCalledWith("/api/blogs/1", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token123",
+        },
+        body: JSON.stringify(updatedBlog),
       });
       expect(result).toEqual(updatedBlog);
     });
 
     test("should propagate error when update fails", async () => {
-      axios.put.mockRejectedValue(new Error("Unauthorized"));
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: "Failed to update blog" }),
+      });
 
-      await expect(blogService.update(1, {})).rejects.toThrow("Unauthorized");
+      await expect(update(1, {})).rejects.toThrow("Failed to update blog");
     });
   });
 
   describe("REMOVE BLOGS", () => {
     test("should delete a blog with authorization header", async () => {
-      axios.delete.mockResolvedValue({ data: {} });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
 
-      const result = await blogService.remove(1);
+      const result = await remove(1);
 
-      expect(axios.delete).toHaveBeenCalledWith("/api/blogs/1", {
+      expect(fetch).toHaveBeenCalledWith("/api/blogs/1", {
+        method: "DELETE",
         headers: { Authorization: "Bearer token123" },
       });
       expect(result).toEqual({});
     });
 
     test("should propagate error when delete fails", async () => {
-      axios.delete.mockRejectedValue(new Error("Forbidden"));
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: "Failed to delete blog" }),
+      });
 
-      await expect(blogService.remove(1)).rejects.toThrow("Forbidden");
+      await expect(remove(1)).rejects.toThrow("Failed to delete blog");
     });
   });
 });

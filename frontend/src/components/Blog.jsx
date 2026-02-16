@@ -22,15 +22,21 @@
  */
 
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
-import { voteBlog, destroyBlog } from "../reducers/blogReducer";
+
+import { useSelector } from "react-redux";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { update, remove } from "../services/blogs";
+import { useNotification } from "../hooks/useNotification";
 
 const Blog = ({ blog }) => {
   const [showBlogDetail, setShowBlogDetail] = useState(false);
 
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user); // Get logged-in user from Redux store
+  const queryClient = useQueryClient(); // Get query client instance
+
+  const { showNotification } = useNotification();
 
   // Inline styles for blog card layout
   const blogStyle = {
@@ -49,20 +55,47 @@ const Blog = ({ blog }) => {
     listStyleType: "none",
   };
 
+  const voteBlogMutation = useMutation({
+    mutationFn: ({ id, updatedBlog }) => update(id, updatedBlog),
+    onSuccess: (updatedBlog) => {
+      const blogs = queryClient.getQueryData(["blogs"]);
+      queryClient.setQueryData(
+        ["blogs"],
+        blogs.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)),
+      );
+      showNotification(`New like added to blog "${updatedBlog.title}"!`, 5, "success");
+    },
+    onError: (error) => {
+      showNotification(`Error updating blog: ${error.response?.data?.error || error.message}`, 5, "error");
+    },
+  });
+
+  const deleteBlogMutation = useMutation({
+    mutationFn: (id) => remove(id),
+    onSuccess: (_, blogId) => {
+      const blogs = queryClient.getQueryData(["blogs"]);
+      queryClient.setQueryData(
+        ["blogs"],
+        blogs.filter((b) => b.id !== blogId),
+      );
+      showNotification(`Blog "${blog.title}" removed!`, 5, "success");
+    },
+    onError: (error) => {
+      showNotification(`Error deleting blog: ${error.response?.data?.error || error.message}`, 5, "error");
+    },
+  });
+
   /** Dispatch a like (increment likes by 1) via the blog reducer thunk */
   const updateLikes = (event) => {
     event.preventDefault();
 
-    dispatch(
-      voteBlog({
-        id: blog.id,
-        title: blog.title,
-        author: blog.author,
-        url: blog.url,
+    voteBlogMutation.mutate({
+      id: blog.id,
+      updatedBlog: {
+        ...blog,
         likes: blog.likes + 1,
-        user: blog.user?.id,
-      }),
-    );
+      },
+    });
   };
 
   /** Confirm and delete this blog (dispatches destroyBlog thunk) */
@@ -70,7 +103,7 @@ const Blog = ({ blog }) => {
     event.preventDefault();
 
     if (window.confirm(`Are you sure you want to remove ${blog.title}?`)) {
-      dispatch(destroyBlog(blog.id));
+      deleteBlogMutation.mutate(blog.id);
     }
   };
 

@@ -31,21 +31,22 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NotificationContextProvider } from "../contexts/NotificationContext";
+import { update, remove } from "../services/blogs";
+
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import blogReducer from "../reducers/blogReducer";
-import notificationReducer from "../reducers/notificationReducer";
 import userReducer, { setUser } from "../reducers/userReducer";
 
 import Blog from "./Blog";
-import blogService from "../services/blogs";
 
 /** Mock blog service to intercept HTTP calls */
 vi.mock("../services/blogs", () => ({
-  default: {
-    update: vi.fn(),
-    remove: vi.fn(),
-  },
+  getAll: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
 }));
 
 /** Test data: a sample blog owned by testuser */
@@ -71,17 +72,21 @@ const user = { username: "testuser" };
 const renderBlog = () => {
   const store = configureStore({
     reducer: {
-      blogs: blogReducer,
-      notification: notificationReducer,
       user: userReducer,
     },
   });
 
   store.dispatch(setUser(user));
 
+  const queryClient = new QueryClient();
+
   render(
     <Provider store={store}>
-      <Blog blog={blog} />
+      <QueryClientProvider client={queryClient}>
+        <NotificationContextProvider>
+          <Blog blog={blog} />
+        </NotificationContextProvider>
+      </QueryClientProvider>
     </Provider>,
   );
 
@@ -91,9 +96,7 @@ const renderBlog = () => {
 describe("Blog Component", () => {
   test("renders title", () => {
     renderBlog();
-    expect(
-      screen.getByText("Testing Blog Component", { exact: false }),
-    ).toBeDefined();
+    expect(screen.getByText("Testing Blog Component", { exact: false })).toBeDefined();
   });
 
   test("renders content when view button is pressed", async () => {
@@ -110,7 +113,7 @@ describe("Blog Component", () => {
 
   test("renders likes when like button is double clicked", async () => {
     const updatedBlog = { ...blog, likes: 6 };
-    blogService.update.mockResolvedValue(updatedBlog);
+    update.mockResolvedValue(updatedBlog);
 
     renderBlog();
     const userEvt = userEvent.setup();
@@ -122,11 +125,11 @@ describe("Blog Component", () => {
     await userEvt.click(likeButton);
     await userEvt.click(likeButton);
 
-    expect(blogService.update).toHaveBeenCalledTimes(2);
+    expect(update).toHaveBeenCalledTimes(2);
   });
 
   test("calls removeBlog when remove button is clicked", async () => {
-    blogService.remove.mockResolvedValue({});
+    remove.mockResolvedValue({});
     window.confirm = vi.fn(() => true);
 
     renderBlog();
@@ -139,6 +142,6 @@ describe("Blog Component", () => {
     await userEvt.click(removeButton);
 
     expect(window.confirm).toHaveBeenCalled();
-    expect(blogService.remove).toHaveBeenCalledWith("123");
+    expect(remove).toHaveBeenCalledWith("123");
   });
 });

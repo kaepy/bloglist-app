@@ -39,18 +39,10 @@ const BlogForm = ({ togglableRef }) => {
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(["blogs"], blogs.concat(newBlog));
 
-      showNotification(
-        `A new blog "${newBlog.title}" by ${newBlog.author} added!`,
-        5,
-        "success",
-      );
+      showNotification(`A new blog "${newBlog.title}" by ${newBlog.author} added!`, 5, "success");
     },
     onError: (error) => {
-      showNotification(
-        `Error creating blog: ${error.response?.data?.error || error.message}`,
-        5,
-        "error",
-      );
+      showNotification(`Error creating blog: ${error.response?.data?.error || error.message}`, 5, "error");
     },
   });
 
@@ -67,7 +59,7 @@ const BlogForm = ({ togglableRef }) => {
 
     try {
       //await dispatch(appendBlog(content));
-      newBlogMutation.mutate(content);
+      newBlogMutation.mutate({ ...content });
 
       // Clear form fields after successful creation
       event.target.elements.title.value = "";

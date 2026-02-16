@@ -15,16 +15,16 @@
  */
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import blogService from "../services/blogs";
-import blogReducer, {
-  initializeBlogs,
-  appendBlog,
-  voteBlog,
-  destroyBlog,
-} from "./blogReducer.js";
+import * as blogService from "../services/blogs";
+import blogReducer, { initializeBlogs, appendBlog, voteBlog, destroyBlog } from "./blogReducer.js";
 
 /** Mock the entire blogs service module */
-vi.mock("../services/blogs");
+vi.mock("../services/blogs", () => ({
+  getAll: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
+}));
 
 describe("BLOG REDUCER", () => {
   beforeEach(() => {
@@ -71,10 +71,7 @@ describe("BLOG REDUCER", () => {
       payload: updatedBlog,
     };
     const newState = blogReducer(initialState, action);
-    expect(newState).toEqual([
-      { id: "1", title: "Blog 1", likes: 0 },
-      updatedBlog,
-    ]);
+    expect(newState).toEqual([{ id: "1", title: "Blog 1", likes: 0 }, updatedBlog]);
   });
 
   test("should handle deleteBlog action", () => {
@@ -184,9 +181,7 @@ describe("BLOG REDUCER", () => {
 
       const dispatch = vi.fn();
 
-      await expect(voteBlog(blogObject)(dispatch)).rejects.toThrow(
-        "Server error",
-      );
+      await expect(voteBlog(blogObject)(dispatch)).rejects.toThrow("Server error");
       expect(dispatch).not.toHaveBeenCalled();
     });
 

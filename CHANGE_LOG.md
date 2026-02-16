@@ -1,15 +1,15 @@
 # CHANGE LOGS
 
-## 7.10: React Query ja context step1
+## 7.12: React Query ja context step3
 
-Muuta tässä tehtävässä notifikaation tilanhallinta tapahtumaan käyttäen useReducer-hookia ja contextia.
+Laajenna ratkaisua siten, että blogien "liketys" ja poisto toimivat.
 
 ## Small fixes
 
-- Refactor notification handling to use NotificationContext and custom hook
-- Remove Redux dependency for notifications
+- Implement blog like and delete functionality using React Query
+- Refactor Blog and BlogForm components for improved notification handling
 
 ## Known issues
 
 - The token expiration is only discovered when making an API call. The frontend doesn't know the token is invalid until the backend rejects it.
-- Voting and removing blog doesn't work
+- Redux is still in use with user/login management.
