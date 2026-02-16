@@ -6,8 +6,8 @@ Laajenna ratkaisua siten, että blogien "liketys" ja poisto toimivat.
 
 ## Small fixes
 
-- Implement blog like and delete functionality using React Query
-- Refactor Blog and BlogForm components for improved notification handling
+- Removed unnecessary notification and blog management related Redux code.
+- Updated comments.
 
 ## Known issues
 

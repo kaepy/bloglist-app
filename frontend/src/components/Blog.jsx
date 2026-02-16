@@ -6,6 +6,8 @@
  * - Collapsed view shows only the title and a "view" toggle button
  * - Expanded view shows author, url, likes (with like button), and username
  * - The "remove" button is only visible to the blog's creator
+ * - Uses React Query mutations for like and delete operations
+ * - Notifications via NotificationContext on success/error
  *
  * Props:
  * - blog: Blog object { id, title, author, url, likes, user }
@@ -85,7 +87,7 @@ const Blog = ({ blog }) => {
     },
   });
 
-  /** Dispatch a like (increment likes by 1) via the blog reducer thunk */
+  /** Increment likes for this blog via React Query mutation and update cache */
   const updateLikes = (event) => {
     event.preventDefault();
 
@@ -98,7 +100,7 @@ const Blog = ({ blog }) => {
     });
   };
 
-  /** Confirm and delete this blog (dispatches destroyBlog thunk) */
+  /** Confirm and delete this blog via React Query mutation and update cache */
   const deleteBlog = (event) => {
     event.preventDefault();
 

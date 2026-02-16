@@ -17,8 +17,6 @@
  * - The `name` attribute on inputs is missing, which means
  *   event.target.elements relies on the `id`. Add `name` attributes
  *   for robustness and accessibility.
- * - The empty catch block silently swallows errors. At minimum, log the
- *   error or display a user-facing message.
  */
 
 import PropTypes from "prop-types";
@@ -47,30 +45,24 @@ const BlogForm = ({ togglableRef }) => {
   });
 
   /** Handle form submission: create blog, clear inputs, toggle form visibility */
-  const addBlog = async (event) => {
+  const addBlog = (event) => {
     event.preventDefault();
 
-    // Read values from uncontrolled inputs via DOM element references
     const content = {
       title: event.target.elements.title.value,
       author: event.target.elements.author.value,
       url: event.target.elements.url.value,
     };
 
-    try {
-      //await dispatch(appendBlog(content));
-      newBlogMutation.mutate({ ...content });
+    newBlogMutation.mutate(content);
 
-      // Clear form fields after successful creation
-      event.target.elements.title.value = "";
-      event.target.elements.author.value = "";
-      event.target.elements.url.value = "";
+    // Clear form fields after submission
+    event.target.elements.title.value = "";
+    event.target.elements.author.value = "";
+    event.target.elements.url.value = "";
 
-      // Collapse the Togglable wrapper
-      togglableRef?.current?.toggleVisibility();
-    } catch {
-      // Error notification is already dispatched by the appendBlog thunk
-    }
+    // Collapse the Togglable wrapper
+    togglableRef?.current?.toggleVisibility();
   };
 
   return (

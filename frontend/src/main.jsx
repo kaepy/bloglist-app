@@ -5,6 +5,8 @@
  * Wraps the app in:
  * - React.StrictMode: Enables additional development warnings and double-renders
  * - Provider: Makes the Redux store available to all components via useSelector/useDispatch
+ * - QueryClientProvider: Provides the React Query client for data fetching and caching
+ * - NotificationContextProvider: Provides a context for managing notifications across the app
  */
 
 import React from "react";

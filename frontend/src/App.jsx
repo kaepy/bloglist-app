@@ -1,7 +1,7 @@
 /**
  * @component App
  * Root application component. Handles:
- * - Initializing blogs and user session on mount (via Redux thunks)
+ * - Initializing user session on mount (via Redux thunk)
  * - Conditional rendering of LoginForm (unauthenticated) vs. main app (authenticated)
  * - Login/logout workflows with notification feedback
  *
@@ -23,7 +23,6 @@
 import { useEffect, useRef } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
-import { initializeBlogs } from "./reducers/blogReducer";
 import { initializeUser, loginUser, logoutUser } from "./reducers/userReducer";
 import { useNotification } from "./hooks/useNotification";
 
@@ -39,9 +38,8 @@ const App = () => {
   const blogFormRef = useRef(); // Ref for the blog form to control its visibility
   const { showNotification } = useNotification();
 
-  // On mount: fetch all blogs from API and restore user session from localStorage
+  // On mount: restore user session from localStorage
   useEffect(() => {
-    dispatch(initializeBlogs());
     dispatch(initializeUser());
   }, [dispatch]);
 
@@ -51,11 +49,7 @@ const App = () => {
       const user = await dispatch(loginUser(credentials));
       showNotification(`Welcome back, ${user.name}!`, 5, "success");
     } catch (error) {
-      showNotification(
-        error.response?.data?.error || "Oops! Wrong credentials. Try again :)",
-        5,
-        "error",
-      );
+      showNotification(error.response?.data?.error || "Oops! Wrong credentials. Try again :)", 5, "error");
     }
   };
 
