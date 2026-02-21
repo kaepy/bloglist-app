@@ -5,13 +5,6 @@
  * actual login action to the parent via the handleLogin callback.
  *
  * Clears both fields after submission regardless of success/failure.
- *
- * REFACTORING NOTES:
- * - The form clears on submit even if login fails, which loses the
- *   user's typed username. Consider clearing only on success.
- * - Add HTML5 `required` attributes for basic browser-level validation.
- * - The `name` attributes ("Username", "Password") use Title Case which
- *   is unconventional. Standard practice is lowercase ("username", "password").
  */
 
 import PropTypes from "prop-types";

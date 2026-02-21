@@ -11,11 +11,6 @@
  *
  * Authentication is handled by the userExtractor middleware, which
  * verifies the JWT token and attaches the user to the request.
- *
- * REFACTORING NOTES:
- * - The commented-out getTokenFrom helper can be removed entirely since token extraction has been moved to middleware.
- * - Consider extracting ownership checks into a shared helper or middleware to reduce duplication between DELETE and PUT handlers.
- * - The PUT endpoint allows anyone to change likes but only the owner to change content — this logic should be documented in an API spec.
  */
 
 const blogsRouter = require("express").Router();
@@ -43,7 +38,6 @@ blogsRouter.get("/:id", async (request, response) => {
  * Requires authentication (userExtractor middleware).
  * Associates the blog with the authenticated user and adds the
  * blog's ID to the user's blogs array.
- * Defaults likes to 0 if not provided.
  */
 blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
   const body = request.body;
@@ -53,7 +47,7 @@ blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
     title: body.title,
     author: body.author,
     url: body.url,
-    likes: body.likes || 0,
+    likes: body.likes,
     user: user._id,
   });
 

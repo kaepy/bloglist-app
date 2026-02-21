@@ -5,9 +5,6 @@
  *
  * The spread operator `[...blogs]` creates a shallow copy before sorting
  * because Array.sort() mutates in place, and React Query's cached data should not be mutated directly.
- *
- * REFACTORING NOTE: Consider using React.useMemo to memoize the sorted array
- * and avoid re-sorting on every render when unrelated state changes occur.
  */
 
 import Blog from "./Blog";

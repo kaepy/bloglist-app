@@ -6,13 +6,6 @@
  * - cy.login(): Authenticates via API and sets localStorage directly
  * - cy.logout(): Clears the session from localStorage
  * - cy.createBlog(): Creates a blog via API with the stored JWT token
- *
- * REFACTORING NOTES:
- * - Hard-coded URLs (http://localhost:3001, http://localhost:5173) should
- *   use Cypress.config('baseUrl') or Cypress.env for portability.
- * - cy.login() calls cy.visit() after setting localStorage. This ensures
- *   the app reads the token on mount. If the app already supports
- *   hot-reloading auth state, the visit could be skipped.
  */
 
 // ***********************************************

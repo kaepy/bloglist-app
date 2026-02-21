@@ -9,14 +9,6 @@
  *   3. (route-specific) userExtractor - Decodes token and attaches user
  *   4. unknownEndpoint - Catches requests that match no route
  *   5. errorHandler   - Centralized error formatting
- *
- * REFACTORING NOTES:
- * - tokenExtractor and userExtractor could be combined into a single
- *   middleware applied only to protected routes, reducing the number
- *   of middleware layers.
- * - The errorHandler could benefit from a mapping object instead of
- *   an if/else chain for cleaner extensibility:
- *     const errorMap = { CastError: 400, ValidationError: 400, ... }
  */
 
 const logger = require("./logger");

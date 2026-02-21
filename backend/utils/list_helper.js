@@ -3,17 +3,6 @@
  * Pure utility functions for blog statistics and analytics.
  * Used by unit tests and potentially by API endpoints that need
  * aggregated blog data.
- *
- * REFACTORING NOTES:
- * - Remove commented-out code (dummy function, console.logs, alternative solution)
- *   to keep the module clean. Dead code belongs in version control history.
- * - The functions don't handle empty-array edge cases consistently:
- *   totalLikes([]) returns 0 (correct), but favoriteBlog([]), mostBlogs([]),
- *   and mostLikes([]) will throw because reduce() on an empty array with no
- *   initial value throws a TypeError. Add guards or initial values.
- * - Consider replacing lodash groupBy with native Object.groupBy (ES2024+)
- *   or at minimum importing only the needed lodash functions
- *   (e.g., lodash/groupBy) to reduce bundle size.
  */
 
 const _ = require("lodash");
@@ -54,9 +43,6 @@ const favoriteBlog = (blogs) => {
 const mostBlogs = (blogs) => {
   const byAuthors = _.groupBy(blogs, "author");
 
-  // _.keys - palauttaa listan objektin kaikista keystä
-  // _.map - luo uuden taulun with the results of a called function for every array element
-  // _.groupBy - ryhmittelee taulukon elementit annetun avaimen perusteella ja palauttaa objektin, jossa avaimina ovat ryhmittelyarvot ja arvoina taulukot niistä elementeistä, jotka kuuluvat kuhunkin ryhmään
 
   const result = Object.keys(byAuthors).map((author) => {
     // Group by title to count only unique blog entries per author
@@ -68,7 +54,6 @@ const mostBlogs = (blogs) => {
     };
   });
 
-  // Find the author with the maximum number of blogs
   return result.reduce((max, current) =>
     max.blogs > current.blogs ? max : current,
   );

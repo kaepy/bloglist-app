@@ -9,13 +9,6 @@
  *
  * Each test creates its own QueryClient for isolation and uses
  * @testing-library/react for DOM queries and user interaction simulation.
- *
- * REFACTORING NOTES:
- * - All three tests repeat the same store setup, render, and form-fill
- *   logic. Extract a shared helper (similar to Blog.test.js's renderBlog)
- *   to reduce ~40 lines of duplication.
- * - The mock setup imports blogService after vi.mock() — this ordering
- *   is required by Vitest's hoisting behavior and should not be changed.
  */
 
 import React from "react";
@@ -48,7 +41,7 @@ vi.mock("../hooks/useNotification", () => ({
 
 import { create } from "../services/blogs";
 
-describe("TESTING NEW BLOG FORM COMPONENT", () => {
+describe("BlogForm component", () => {
   const newBlog = {
     title: "Mock Tester",
     author: "Mock the Mocker",
@@ -59,7 +52,7 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     vi.clearAllMocks();
   });
 
-  test("<BlogForm /> create new blog", async () => {
+  test("when form is submitted with valid data, it should call create service with correct data", async () => {
     const createdBlog = { id: 1, ...newBlog };
     create.mockResolvedValue(createdBlog);
 
@@ -74,8 +67,6 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
       </QueryClientProvider>,
     );
 
-    //screen.debug()
-
     const title = screen.getByPlaceholderText("placeholder title");
     const author = screen.getByPlaceholderText("placeholder author");
     const url = screen.getByPlaceholderText("placeholder url");
@@ -86,9 +77,6 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     await user.type(url, newBlog.url);
     await user.click(createButton);
 
-    //screen.debug()
-
-    // Wait for async dispatch to complete
     await waitFor(() => {
       // Verify blog service was called with correct data
       // React Query passes mutation context as second arg, so check first arg only
@@ -101,7 +89,7 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     });
   });
 
-  test("form clears after submission", async () => {
+  test("when form is submitted successfully, it should clear all input fields", async () => {
     const createdBlog = { id: 1, ...newBlog };
     create.mockResolvedValue(createdBlog);
 
@@ -133,7 +121,7 @@ describe("TESTING NEW BLOG FORM COMPONENT", () => {
     });
   });
 
-  test("notification is displayed after submission", async () => {
+  test("when form is submitted successfully, it should show a success notification", async () => {
     const createdBlog = { id: 1, ...newBlog };
     create.mockResolvedValue(createdBlog);
 

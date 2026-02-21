@@ -7,18 +7,6 @@
  * - nonExistingId: Generates a valid-format MongoDB ID that doesn't exist
  * - blogsInDb / usersInDb: Snapshot helpers to read current DB state
  * - testUserToken: Creates a JWT for the first initialized user (for auth tests)
- *
- * REFACTORING NOTES:
- * - The initialUsers entry has `passwordHash: null`, which means this user
- *   cannot actually log in via the login endpoint. This is fine because
- *   testUserToken() bypasses password validation by signing a token directly.
- *   However, it's confusing — consider documenting this explicitly or
- *   providing a proper hashed password.
- * - nonExistingId() creates a Blog with { content: 'willremovethissoon' },
- *   but the Blog schema requires `title`, not `content`. This may silently
- *   fail or create an invalid document. Fix the field name to `title`.
- * - Hard-coded _id values couple tests to specific MongoDB ObjectIds.
- *   This is intentional (to set up user-blog relationships) but fragile.
  */
 
 const Blog = require("../models/blog");

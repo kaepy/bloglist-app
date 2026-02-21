@@ -12,17 +12,6 @@
  *   - Blog CRUD operations (create, like, delete)
  *   - Authorization (only creator sees remove button)
  *   - Sorting by likes
- *
- * REFACTORING NOTES:
- * - `it.only` on the last test means all other "When logged in" tests
- *   are skipped during normal runs. Remove `.only` to run the full suite.
- * - The like-button loop (`for (let i = 0; i < 5; i++)`) can be flaky
- *   because each click triggers an async API call. Add `cy.wait` or
- *   assert the updated count before clicking again.
- * - Hard-coded URLs (localhost:5173, localhost:3001) should use
- *   Cypress.env or cypress.config.js baseUrl for portability.
- * - Custom commands (cy.login, cy.createBlog, cy.logout) are defined in
- *   cypress/support/commands.js and bypass the UI for faster setup.
  */
 
 describe("Blog app", function () {
@@ -60,7 +49,7 @@ describe("Blog app", function () {
       cy.get("#password").type("hommeli");
       cy.get("#login-button").click();
 
-      cy.contains("Welcome himmeli!");
+      cy.contains("Welcome back, Himmeli Hommeli!");
     });
 
     it("fails with wrong credentials", function () {
@@ -68,7 +57,7 @@ describe("Blog app", function () {
       cy.get("#password").type("wrong");
       cy.get("#login-button").click();
 
-      cy.contains("Ups! Wrong credentials. Try again :)");
+      cy.contains("Oops! Wrong credentials. Try again :)");
     });
   });
 
@@ -101,43 +90,34 @@ describe("Blog app", function () {
       cy.get("#url").type("url example");
       cy.get("#create-button").click();
 
-      cy.contains("A new blog title example by author example added");
+      cy.contains('A new blog "title example" by author example added!');
       cy.contains("title example");
     });
 
     it("A blog can be liked", function () {
       // Expand blog details, click like, and verify the count increments
-      cy.contains("another title")
-        .as("likeBlog")
-        .find("#viewhide-button")
-        .click();
+      cy.contains("another title").as("likeBlog").find("#viewhide-button").click();
 
       cy.get("@likeBlog").contains("likes").should("contain", "0");
       cy.get("@likeBlog").find("#like-button").click();
 
-      cy.contains("New like added to blog another title");
+      cy.contains('New like added to blog "another title"!');
       // After liking, the blog may re-sort; search from parent to find updated count
       cy.get("@likeBlog").parent().contains("likes").should("contain", "1");
     });
 
     it("A blog can be removed", function () {
-      cy.contains("and title")
-        .as("blogToRemove")
-        .find("#viewhide-button")
-        .click();
+      cy.contains("and title").as("blogToRemove").find("#viewhide-button").click();
 
       cy.get("@blogToRemove").find("#remove-button").click();
 
-      cy.contains("Blog and title removed");
-      cy.get("and another title").should("not.exist");
+      cy.contains('Blog "and title" removed!');
+      cy.contains("and title").should("not.exist");
     });
 
     it("Only blog creator can see remove button", function () {
       // Verify remove button is visible for the creator (himmeli)
-      cy.contains("yet title")
-        .as("blogToRemove")
-        .find("#viewhide-button")
-        .click();
+      cy.contains("yet title").as("blogToRemove").find("#viewhide-button").click();
 
       cy.get("@blogToRemove").find("#remove-button");
 
@@ -151,25 +131,13 @@ describe("Blog app", function () {
       cy.get("@blogToRemove").find("#remove-button").should("not.exist");
     });
 
-    it.only("Blogs are sorted by likes", function () {
+    it("Blogs are sorted by likes", function () {
       // Expand all three blogs to access their like buttons
-      cy.get(".blog")
-        .contains("yet title")
-        .as("likeYetBlog")
-        .find("#viewhide-button")
-        .click();
+      cy.get(".blog").contains("yet title").as("likeYetBlog").find("#viewhide-button").click();
 
-      cy.get(".blog")
-        .contains("another title")
-        .as("likeAnotherBlog")
-        .find("#viewhide-button")
-        .click();
+      cy.get(".blog").contains("another title").as("likeAnotherBlog").find("#viewhide-button").click();
 
-      cy.get(".blog")
-        .contains("and title")
-        .as("likeAndBlog")
-        .find("#viewhide-button")
-        .click();
+      cy.get(".blog").contains("and title").as("likeAndBlog").find("#viewhide-button").click();
 
       // Like "another" 5 times, "yet" 2 times, "and" 0 times
       // Then verify DOM order matches descending like count

@@ -5,15 +5,6 @@
  * Routes:
  *   GET  / - List all users with their populated blogs
  *   POST / - Register a new user (password validation + bcrypt hashing)
- *
- * REFACTORING NOTES:
- * - GET / is currently unprotected — consider requiring authentication
- *   or paginating results to avoid exposing the full user list.
- * - Password validation logic (presence and length checks) could be
- *   moved into a dedicated validation middleware or utility function
- *   to keep the route handler lean.
- * - The saltRounds value (10) is a reasonable default, but should be
- *   extracted to config for easy adjustment as hardware evolves.
  */
 
 const bcrypt = require('bcrypt')

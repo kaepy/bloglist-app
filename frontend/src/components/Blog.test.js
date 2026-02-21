@@ -2,29 +2,22 @@
  * @file Blog.test.js
  * Component integration tests for the Blog component.
  *
- * Each test renders the Blog component inside a real Redux Provider
- * (with a configured store) and simulates user interactions.
+ * Each test renders the Blog component inside providers that mirror
+ * the real app: QueryClientProvider, UserContextProvider, and
+ * NotificationContextProvider.
  *
  * Mock setup:
  * - blogService.update and blogService.remove are mocked to prevent
  *   actual HTTP requests while verifying they're called correctly.
- * - A test user is dispatched to the store so ownership logic works.
+ * - storage.loadUser is mocked to return a test user so the
+ *   UserContext has a logged-in user for ownership checks.
  *
  * Test coverage:
  * - Renders title in collapsed view
  * - Expands details on "view" button click
  * - Like button calls update service (verifies double-click = 2 calls)
  * - Remove button triggers confirm dialog and calls remove service
- *
- * REFACTORING NOTES:
- * - The renderBlog helper creates a new store per test, which is good
- *   for isolation. Consider extracting it into a shared test util.
- * - The blog and user test data are defined at module scope, meaning
- *   all tests share the same objects. This is fine for read-only data
- *   but could cause issues if any test mutates them.
  */
-
-import React from "react";
 
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
@@ -33,11 +26,9 @@ import { vi } from "vitest";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotificationContextProvider } from "../contexts/NotificationContext";
+import { UserContextProvider } from "../contexts/UserContext";
 import { update, remove } from "../services/blogs";
-
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import userReducer, { setUser } from "../reducers/userReducer";
+import storage from "../services/storage";
 
 import Blog from "./Blog";
 
@@ -48,6 +39,9 @@ vi.mock("../services/blogs", () => ({
   update: vi.fn(),
   remove: vi.fn(),
 }));
+
+/** Mock storage so UserContext can load the test user without real localStorage */
+vi.mock("../services/storage");
 
 /** Test data: a sample blog owned by testuser */
 const blog = {
@@ -66,40 +60,44 @@ const blog = {
 const user = { username: "testuser" };
 
 /**
- * Helper: creates a fresh Redux store, dispatches the test user,
- * and renders the Blog component with the provided test data.
+ * Helper: mocks storage to return the test user, then renders Blog
+ * inside all required providers (same nesting as main.jsx).
+ *
+ * UserContextProvider reads the user via initializeUser → storage.loadUser,
+ * but we need the user available immediately. So we mock storage.loadUser
+ * to return our test user, and the component's useUser() will pick it up
+ * once initializeUser is called in App. For tests, we trigger it by
+ * rendering a small wrapper that calls initializeUser on mount.
  */
 const renderBlog = () => {
-  const store = configureStore({
-    reducer: {
-      user: userReducer,
-    },
-  });
-
-  store.dispatch(setUser(user));
+  // Mock storage to return our test user
+  storage.loadUser.mockReturnValue(user);
 
   const queryClient = new QueryClient();
 
-  render(
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <NotificationContextProvider>
-          <Blog blog={blog} />
-        </NotificationContextProvider>
-      </QueryClientProvider>
-    </Provider>,
-  );
+  // Small wrapper that just renders Blog inside all providers.
+  // The UserContextProvider automatically restores the user from storage on mount
+  // (mocked above via storage.loadUser.mockReturnValue(user)).
+  const BlogWithInit = () => <Blog blog={blog} />;
 
-  return store;
+  render(
+    <QueryClientProvider client={queryClient}>
+      <UserContextProvider>
+        <NotificationContextProvider>
+          <BlogWithInit />
+        </NotificationContextProvider>
+      </UserContextProvider>
+    </QueryClientProvider>,
+  );
 };
 
 describe("Blog Component", () => {
-  test("renders title", () => {
+  test("when rendered, it should display the blog title", () => {
     renderBlog();
     expect(screen.getByText("Testing Blog Component", { exact: false })).toBeDefined();
   });
 
-  test("renders content when view button is pressed", async () => {
+  test("when view button is clicked, it should show author, url, and likes", async () => {
     renderBlog();
     const userEvt = userEvent.setup();
 
@@ -111,7 +109,7 @@ describe("Blog Component", () => {
     expect(screen.getByText("likes: 5", { exact: false })).toBeDefined();
   });
 
-  test("renders likes when like button is double clicked", async () => {
+  test("when like button is clicked twice, it should call update service twice", async () => {
     const updatedBlog = { ...blog, likes: 6 };
     update.mockResolvedValue(updatedBlog);
 
@@ -128,7 +126,7 @@ describe("Blog Component", () => {
     expect(update).toHaveBeenCalledTimes(2);
   });
 
-  test("calls removeBlog when remove button is clicked", async () => {
+  test("when remove button is clicked and confirmed, it should call remove service with blog id", async () => {
     remove.mockResolvedValue({});
     window.confirm = vi.fn(() => true);
 

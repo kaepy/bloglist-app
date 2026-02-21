@@ -11,16 +11,6 @@
  * The app is exported WITHOUT calling .listen() so that:
  * - index.js can start the HTTP server
  * - supertest can import the app directly for integration tests
- *
- * REFACTORING NOTES:
- * - The static file path ("../frontend/dist") is fragile and couples the
- *   backend to the frontend's build output location. Consider using an
- *   environment variable or a path.join(__dirname, ...) approach.
- * - Middleware ordering is correct but not well-commented inline —
- *   the order matters (e.g., tokenExtractor must run before routes).
- * - The two commented-out lines about userExtractor show the decision
- *   to apply it per-route instead of globally — this is a good choice
- *   but the dead comments should be removed.
  */
 
 const express = require("express");

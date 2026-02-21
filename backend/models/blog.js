@@ -6,17 +6,8 @@
  *   - title (String, required, min 5 chars)
  *   - author (String)
  *   - url (String)
- *   - likes (Number)
+ *   - likes (Number, default 0)
  *   - user (ObjectId ref -> User) — the creator of the blog
- *
- * REFACTORING NOTES:
- * - `url` should have a required constraint and/or a URL format validator
- *   (e.g., using `match` with a regex, or the `validator` npm package).
- * - `likes` should default to 0 at the schema level:
- *       likes: { type: Number, default: 0 }
- *   Currently the default is only set in the controller, which leaves
- *   the model inconsistent when used elsewhere.
- * - Consider adding timestamps: true for automatic createdAt/updatedAt.
  */
 
 const mongoose = require('mongoose')
@@ -29,7 +20,7 @@ const blogSchema = new mongoose.Schema({
   },
   author: String,
   url: String,
-  likes: Number,
+  likes: { type: Number, default: 0 },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

@@ -12,16 +12,9 @@
  * controller BEFORE hashing, because Mongoose validators only see the
  * already-hashed value. This is by design — the plain-text password
  * should never reach the database layer.
- *
- * REFACTORING NOTES:
- * - The `name` field has no validation — consider adding minlength/maxlength.
- * - Consider extracting the username regex into a shared constants file
- *   so the same pattern can be reused for client-side validation.
  */
 
 const mongoose = require("mongoose");
-
-// Password validation must happen before hashing, as Mongoose validators only see the hashed value, not the plain-text password. This is by design for security reasons.
 
 const userSchema = mongoose.Schema({
   username: {
@@ -58,7 +51,6 @@ userSchema.set("toJSON", {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
-    // the passwordHash should not be revealed
     delete returnedObject.passwordHash;
   },
 });

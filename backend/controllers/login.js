@@ -8,11 +8,6 @@
  *
  * Token payload: { username, id }
  * Token lifetime: 1 hour (3600 seconds)
- *
- * REFACTORING NOTES:
- * - Consider adding rate limiting to prevent brute-force attacks.
- * - The token expiry is hardcoded; extract it to config for easier tuning.
- * - Add refresh-token support for a better UX on long sessions.
  */
 
 const jwt = require("jsonwebtoken");

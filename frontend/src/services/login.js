@@ -4,8 +4,9 @@
  * Sends credentials to POST /api/login and returns the server response
  * containing { token, username, name }.
  *
- * The caller (userReducer) is responsible for persisting the returned
- * user object to localStorage and dispatching it to the Redux store.
+ * Uses axios (not the fetch-based blogs service) because the login
+ * response drives UserContext state, and axios provides consistent
+ * error shape via response.data.
  */
 
 import axios from "axios";

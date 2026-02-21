@@ -8,15 +8,6 @@
  * Props:
  * - togglableRef: Ref to the parent Togglable component, used to
  *   collapse the form after successful submission.
- *
- * REFACTORING NOTES:
- * - The form uses `id` attributes to access input values via
- *   event.target.elements. This works but is fragile — consider using
- *   controlled inputs with useState or a form library (e.g., React Hook Form)
- *   for better validation, error display, and testability.
- * - The `name` attribute on inputs is missing, which means
- *   event.target.elements relies on the `id`. Add `name` attributes
- *   for robustness and accessibility.
  */
 
 import PropTypes from "prop-types";
@@ -30,7 +21,6 @@ const BlogForm = ({ togglableRef }) => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
 
-  // useMutation hook for creating a new blog entry
   const newBlogMutation = useMutation({
     mutationFn: create,
     onSuccess: (newBlog) => {

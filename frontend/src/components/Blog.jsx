@@ -11,22 +11,12 @@
  *
  * Props:
  * - blog: Blog object { id, title, author, url, likes, user }
- *
- * REFACTORING NOTES:
- * - Inline styles (blogStyle, ulStyle) should be moved to a CSS module
- *   or styled-components for better maintainability and reusability.
- * - The updateLikes handler reconstructs the full blog object which is
- *   error-prone. Consider sending only { likes: blog.likes + 1 } and
- *   letting the backend merge the update (partial update pattern).
- * - The component reads `user` from Redux to check ownership. This is
- *   fine but creates a tight coupling. Alternatively, the parent could
- *   pass an `isOwner` boolean prop.
  */
 
 import { useState } from "react";
 import PropTypes from "prop-types";
 
-import { useSelector } from "react-redux";
+import { useUser } from "../hooks/useUser";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { update, remove } from "../services/blogs";
@@ -35,8 +25,8 @@ import { useNotification } from "../hooks/useNotification";
 const Blog = ({ blog }) => {
   const [showBlogDetail, setShowBlogDetail] = useState(false);
 
-  const user = useSelector((state) => state.user); // Get logged-in user from Redux store
-  const queryClient = useQueryClient(); // Get query client instance
+  const { user } = useUser();
+  const queryClient = useQueryClient();
 
   const { showNotification } = useNotification();
 
@@ -87,7 +77,6 @@ const Blog = ({ blog }) => {
     },
   });
 
-  /** Increment likes for this blog via React Query mutation and update cache */
   const updateLikes = (event) => {
     event.preventDefault();
 
@@ -100,7 +89,6 @@ const Blog = ({ blog }) => {
     });
   };
 
-  /** Confirm and delete this blog via React Query mutation and update cache */
   const deleteBlog = (event) => {
     event.preventDefault();
 
@@ -109,7 +97,6 @@ const Blog = ({ blog }) => {
     }
   };
 
-  // Toggle between collapsed/expanded view
   const buttonToggle = () => setShowBlogDetail(!showBlogDetail);
   const buttonLabel = showBlogDetail ? "hide" : "view";
 
@@ -120,7 +107,6 @@ const Blog = ({ blog }) => {
         {" "}
         {buttonLabel}{" "}
       </button>
-      {/* Expanded detail section — only rendered when showBlogDetail is true */}
       {showBlogDetail && (
         <ul style={ulStyle}>
           <li>author: {blog.author}</li>
@@ -132,7 +118,6 @@ const Blog = ({ blog }) => {
             </button>
           </li>
           <li>user: {blog.user?.username ?? "unknown"}</li>
-          {/* Only show remove button if the logged-in user is the blog creator */}
           {blog.user && user.username === blog.user.username && (
             <li>
               <button id="remove-button" onClick={deleteBlog}>
@@ -146,7 +131,6 @@ const Blog = ({ blog }) => {
   );
 };
 
-/** PropTypes validation — ensures type safety for the blog prop */
 Blog.propTypes = {
   blog: PropTypes.shape({
     id: PropTypes.string.isRequired,

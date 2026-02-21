@@ -7,31 +7,17 @@
  *
  * Each describe block provides its own test data array to keep tests
  * independent and self-documenting.
- *
- * REFACTORING NOTES:
- * - The blog data arrays are duplicated across describe blocks. Consider
- *   extracting them into shared constants at the top of the file
- *   (e.g., `const sixBlogs = [...]`) to reduce ~120 lines of repetition.
- * - Add edge-case tests for empty arrays on favoriteBlog, mostBlogs,
- *   and mostLikes — these currently throw on empty input.
  */
 
 const listHelper = require("../utils/list_helper");
 const { test, describe } = require("node:test");
 const assert = require("assert");
 
-/* These are unit tests of helper functions:
-- Test pure functions like dummy(), totalLikes(), favoriteBlog(), etc.
-- Don't need a database at all
-- Should work immediately
-*/
-
 describe("total likes", () => {
   const listWithZeroBlog = [];
 
   test("of empty list is zero", () => {
     const result = listHelper.totalLikes(listWithZeroBlog);
-    //console.log('4.3 A:', result)
     assert.strictEqual(result, 0);
   });
 
@@ -48,7 +34,6 @@ describe("total likes", () => {
 
   test("when list has only one blog equals the likes of that", () => {
     const result = listHelper.totalLikes(listWithOneBlog);
-    //console.log('4.3 B:', result)
     assert.strictEqual(result, 5);
   });
 
@@ -105,7 +90,6 @@ describe("total likes", () => {
 
   test("of a bigger list is calculated right", () => {
     const result = listHelper.totalLikes(listWithManyBlog);
-    //console.log('4.3 C:', result)
     assert.strictEqual(result, 36);
   });
 });
@@ -171,8 +155,6 @@ describe("favorite blog", () => {
       likes: 12,
     };
 
-    //console.log('4.5*', result)
-
     assert.deepStrictEqual(result, testData);
   });
 });
@@ -237,8 +219,6 @@ describe("most blogs", () => {
       blogs: 3,
     };
 
-    //console.log('4.6*', result)
-
     assert.deepStrictEqual(result, testData);
   });
 });
@@ -302,8 +282,6 @@ describe("most likes", () => {
       author: "Edsger W. Dijkstra",
       likes: 17,
     };
-
-    //console.log('4.7*', result)
 
     assert.deepStrictEqual(result, testData);
   });

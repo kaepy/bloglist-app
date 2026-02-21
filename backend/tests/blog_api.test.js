@@ -21,19 +21,6 @@
  *   npm test -- tests/blog_api.test.js          (by file)
  *   npm test -- -t 'a specific test name'       (by test name)
  *   npm test -- -t 'blogs'                      (pattern match)
- *
- * REFACTORING NOTES:
- * - The `bcrypt` import is noted as "removed from use" but is still
- *   imported at the top. It's used in the user-creation beforeEach.
- *   Remove the comment or the import if truly unused.
- * - The `testUser` constant at module scope is never referenced in any test.
- *   Remove it to avoid confusion.
- * - Each `beforeEach` wipes and reinitializes data, which is correct for isolation
- *   but makes the suite slow. Consider using transactions for rollback-based
- *   isolation if test runtime becomes a concern.
- * - The user tests nest a second beforeEach that conflicts with the outer one
- *   (both clear User collection). This works but is confusing — consider
- *   splitting user tests into a separate test file.
  */
 
 const mongoose = require("mongoose");

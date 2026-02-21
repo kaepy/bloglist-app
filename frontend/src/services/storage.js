@@ -6,9 +6,6 @@
  * All other modules should use this service instead of accessing
  * localStorage directly, making it easy to swap the storage backend
  * (e.g., sessionStorage, cookies) in the future.
- *
- * REFACTORING NOTE: Consider adding try/catch around JSON.parse to
- * handle corrupted localStorage data gracefully instead of crashing.
  */
 
 const KEY = "blogUserKey";

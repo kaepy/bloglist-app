@@ -2,33 +2,32 @@
  * @module main
  * Application entry point. Mounts the React app into the DOM.
  *
- * Wraps the app in:
- * - React.StrictMode: Enables additional development warnings and double-renders
- * - Provider: Makes the Redux store available to all components via useSelector/useDispatch
- * - QueryClientProvider: Provides the React Query client for data fetching and caching
- * - NotificationContextProvider: Provides a context for managing notifications across the app
+ * Provider nesting order matters:
+ * - QueryClientProvider must wrap everything that fetches data
+ * - UserContextProvider must wrap NotificationContextProvider because
+ *   notifications can reference user state (e.g., show username on login)
+ * - StrictMode is outermost so it catches issues in all providers too
  */
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UserContextProvider } from "./contexts/UserContext";
 import { NotificationContextProvider } from "./contexts/NotificationContext";
 
 import App from "./App";
-import store from "./store";
 
 const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <UserContextProvider>
         <NotificationContextProvider>
           <App />
         </NotificationContextProvider>
-      </QueryClientProvider>
-    </Provider>
+      </UserContextProvider>
+    </QueryClientProvider>
   </React.StrictMode>,
 );

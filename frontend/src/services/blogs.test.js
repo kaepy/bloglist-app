@@ -10,10 +10,6 @@
  * - create: sends POST with auth header, handles missing user
  * - update: sends PUT with auth header, handles errors
  * - remove: sends DELETE with auth header, handles errors
- *
- * REFACTORING NOTE:
- * The "should send undefined token when user is not logged in" test documents a current behavior (Bearer undefined) that is arguably a bug.
- * The service should handle null users more gracefully.
  */
 
 import { describe, expect, test, vi, beforeEach } from "vitest";

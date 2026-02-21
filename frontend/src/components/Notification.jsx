@@ -6,12 +6,6 @@
  * The notification type ('success' or 'error') determines the text color:
  *   - success: green
  *   - error: red
- *
- * REFACTORING NOTES:
- * - The inline styles should be extracted to CSS classes or a CSS module.
- * - Consider adding an aria-live="polite" attribute for accessibility
- *   so screen readers announce notifications automatically.
- * - A fade-out animation would improve UX (CSS transition or framer-motion).
  */
 
 import { useNotification } from "../hooks/useNotification";

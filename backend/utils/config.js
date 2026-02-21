@@ -8,10 +8,6 @@
  *   - MONGODB_URI: Database connection string (test or production)
  *   - PORT: HTTP server port
  *   - SECRET: JWT signing secret
- *
- * REFACTORING NOTE: Consider adding validation for required env vars
- * (e.g., throw on startup if SECRET or MONGODB_URI is missing) to
- * fail fast instead of producing cryptic runtime errors.
  */
 
 require("dotenv").config();

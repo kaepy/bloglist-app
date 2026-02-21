@@ -12,11 +12,6 @@
  *
  * Exposed ref methods:
  * - toggleVisibility(): Flip the visibility state
- *
- * REFACTORING NOTES:
- * - Consider accepting an `initiallyVisible` prop for flexibility.
- * - The cancel button text is hardcoded. Consider making it configurable
- *   via a `cancelLabel` prop with a default of "cancel".
  */
 
 import { useState, useImperativeHandle, forwardRef } from "react";
