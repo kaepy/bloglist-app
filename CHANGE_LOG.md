@@ -1,18 +1,13 @@
 # CHANGE LOGS
 
-## 7.16: blogin näkymä
+## 7.17: navigointi
 
-Toteuta sovellukseen oma näkymä yksittäisille blogeille. Näkymä voi näyttää seuraavalta
+Tee sovellukseen navigaatiomenu
 
 ## Changes
 
-- Implement blog detail view and refactor blog list component.
-- Added BlogListItem component to display individual blog titles as links.
-- Created Blog component to show detailed blog information including author, URL, and likes.
-- Integrated blog detail fetching with useQuery and added like/remove functionality.
-- Updated routing to include blog detail paths.
-- Removed obsolete Blog.test.js and added Blog.test.jsx for detail page testing.
-- Small refactoring and removed unnecessary stuff
+- Enhance layout by adding navigation links for Blogs and Users
+- Added logged in user's name
 
 ## Known issues
 

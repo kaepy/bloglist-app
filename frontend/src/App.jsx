@@ -38,13 +38,26 @@ const App = () => {
     );
   }
 
+  const padding = {
+    padding: 5,
+  };
+
   return (
     <Router>
       <div>
         <h2>Blogs</h2>
         <Notification />
-        <div>
-          <button onClick={handleLogout}>logout</button>
+        <div style={{ marginBottom: 10, padding: 5, background: "lightgray" }}>
+          <Link style={padding} to="/">
+            Blogs
+          </Link>
+          <Link style={padding} to="/users">
+            Users
+          </Link>
+          {user.name} logged in
+          <button style={{ marginLeft: 5 }} onClick={handleLogout}>
+            logout
+          </button>
         </div>
 
         <Routes>
