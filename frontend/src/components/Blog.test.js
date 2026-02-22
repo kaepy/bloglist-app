@@ -24,6 +24,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
+import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotificationContextProvider } from "../contexts/NotificationContext";
 import { UserContextProvider } from "../contexts/UserContext";
@@ -81,13 +82,15 @@ const renderBlog = () => {
   const BlogWithInit = () => <Blog blog={blog} />;
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <UserContextProvider>
-        <NotificationContextProvider>
-          <BlogWithInit />
-        </NotificationContextProvider>
-      </UserContextProvider>
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <UserContextProvider>
+          <NotificationContextProvider>
+            <BlogWithInit />
+          </NotificationContextProvider>
+        </UserContextProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 };
 

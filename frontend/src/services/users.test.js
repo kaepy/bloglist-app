@@ -2,17 +2,15 @@
  * @file users.test.js
  * Unit tests for the user HTTP service layer.
  *
- * Axios is fully mocked so no real HTTP requests are made.
+ * globalThis.fetch is mocked per-test so no real HTTP requests are made.
  *
  * Test coverage:
- * - getAll: fetches from correct URL, handles errors
- * - create: sends POST with auth header, handles missing user
- * - update: sends PUT with auth header, handles errors
- * - remove: sends DELETE with auth header, handles errors
+ * - getAllUsers: fetches from correct URL, handles errors
+ * - getUserById: fetches from correct URL with ID, handles errors
  */
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { getAllUsers } from "./users";
+import { getAllUsers, getUserById } from "./users";
 
 describe("USERS SERVICE", () => {
   beforeEach(() => {
@@ -44,6 +42,35 @@ describe("USERS SERVICE", () => {
       });
 
       await expect(getAllUsers()).rejects.toThrow("Failed to fetch users");
+    });
+  });
+
+  describe("GET USER BY ID", () => {
+    test("should fetch a single user from /api/users/:id", async () => {
+      const user = {
+        id: "abc123",
+        username: "testuser",
+        blogs: [{ id: "b1", title: "My Blog" }],
+      };
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(user),
+      });
+
+      const result = await getUserById("abc123");
+
+      expect(fetch).toHaveBeenCalledWith("/api/users/abc123", {});
+      expect(result).toEqual(user);
+    });
+
+    test("should propagate error when request fails", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({ error: "User not found" }),
+      });
+
+      await expect(getUserById("nonexistent")).rejects.toThrow("User not found");
     });
   });
 });

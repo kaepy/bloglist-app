@@ -7,7 +7,7 @@
  * collapse the form after a successful submission from inside the child.
  */
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import { useRef } from "react";
 import { useUser } from "./hooks/useUser";
@@ -19,6 +19,7 @@ import BlogList from "./components/BlogList";
 import Togglable from "./components/Togglable";
 import BlogForm from "./components/BlogForm";
 import UserList from "./components/UserList";
+import User from "./components/User";
 
 const App = () => {
   const { user } = useUser();
@@ -42,7 +43,6 @@ const App = () => {
         <h2>Blogs</h2>
         <Notification />
         <div>
-          {user.name} logged in
           <button onClick={handleLogout}>logout</button>
         </div>
 
@@ -59,6 +59,7 @@ const App = () => {
             }
           />
           <Route path="/users" element={<UserList />} />
+          <Route path="/users/:id" element={<User />} />
         </Routes>
       </div>
     </Router>

@@ -1,17 +1,19 @@
 # CHANGE LOGS
 
-## 7.14: käyttäjien näkymä
+## 7.15: yksittäisen käyttäjän näkymä
 
-Tee sovellukseen näkymä, joka näyttää kaikkiin käyttäjiin liittyvät perustiedot.
+Tee sovellukseen yksittäisen käyttäjän näkymä, jolta selviää mm. käyttäjän lisäämät blogit
 
 ## Changes
 
-- Add routing and user management features
-- Integrated react-router-dom
-- Created UserList component to display users
-- Added user service for fetching users from the backend
-- Enhanced error handling in request function
-- Added user service tests
+- Add user profile page and enhance user-related features
+- Implemented User component to display user details and their blogs.
+- Updated UserList to link usernames to their respective profile pages.
+- Enhanced Blog component to link to user profiles.
+- Added getUserById service function for fetching user data by ID.
+- Refactored login and users controllers to supoprt user.id
+- Updates Blog.test.js
+- Added tests for User and UserList components
 
 ## Known issues
 

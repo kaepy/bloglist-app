@@ -25,8 +25,7 @@ loginRouter.post("/", async (request, response) => {
   // Compare the plain-text password against the stored bcrypt hash.
   // If user is null, short-circuit to false to avoid leaking whether
   // the username exists (timing-safe comparison is handled by bcrypt).
-  const passwordCorrect =
-    user === null ? false : await bcrypt.compare(password, user.passwordHash);
+  const passwordCorrect = user === null ? false : await bcrypt.compare(password, user.passwordHash);
 
   if (!(user && passwordCorrect)) {
     return response.status(401).json({
@@ -42,9 +41,7 @@ loginRouter.post("/", async (request, response) => {
 
   const token = jwt.sign(userForToken, config.SECRET, { expiresIn: 60 * 60 });
 
-  response
-    .status(200)
-    .send({ token, username: user.username, name: user.name });
+  response.status(200).send({ token, username: user.username, name: user.name, id: user._id });
 });
 
 module.exports = loginRouter;

@@ -27,3 +27,5 @@ const request = async (url, options = {}) => {
 };
 
 export const getAllUsers = () => request(baseUrl);
+
+export const getUserById = (id) => request(`${baseUrl}/${id}`);

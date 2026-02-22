@@ -15,6 +15,7 @@
 
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
 import { useUser } from "../hooks/useUser";
 
@@ -117,7 +118,9 @@ const Blog = ({ blog }) => {
               like
             </button>
           </li>
-          <li>user: {blog.user?.username ?? "unknown"}</li>
+          <li>
+            user: <Link to={`/users/${blog.user?.id}`}>{blog.user?.username ?? "unknown"}</Link>
+          </li>
           {blog.user && user.username === blog.user.username && (
             <li>
               <button id="remove-button" onClick={deleteBlog}>
