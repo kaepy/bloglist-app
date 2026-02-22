@@ -1,5 +1,5 @@
 /**
- * @component Bloglist
+ * @component BlogList
  * Renders a sorted list of all blogs from React Query cache.
  * Blogs are sorted in descending order by likes (most liked first).
  *
@@ -12,7 +12,7 @@ import Blog from "./Blog";
 import { useQuery } from "@tanstack/react-query";
 import { getAll } from "../services/blogs";
 
-const Bloglist = () => {
+const BlogList = () => {
   const blogs = useQuery({ queryKey: ["blogs"], queryFn: getAll });
 
   if (blogs.isLoading) {
@@ -30,4 +30,4 @@ const Bloglist = () => {
   );
 };
 
-export default Bloglist;
+export default BlogList;

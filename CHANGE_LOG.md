@@ -1,20 +1,17 @@
 # CHANGE LOGS
 
-## 7.13: React Query ja context step4
+## 7.14: käyttäjien näkymä
 
-Siirrä myös kirjautuneen käyttäjän tietojen hallinnointi tapahtumaan useReducer-hookin ja contextin avulla.
+Tee sovellukseen näkymä, joka näyttää kaikkiin käyttäjiin liittyvät perustiedot.
 
 ## Changes
 
-- Developed UserContext for managing user authentication state and actions.
-- Added useAuth and useUser hooks for streamlined authentication logic and context access.
-- Removed redundant Redux store configuration file in favor of context-based state management.
-- Refactored login service documentation for better understanding of axios usage.
-- Implemented new Bloglist, LoginForm, Notification, Togglable, and UserContext tests to ensure component functionality and state management.
-- Updated blog service tests to improve clarity and coverage.
-- Added error handling notes in storage service documentation.
-- Introduced Copilot instructions for consistent development practices and code reviews.
-- Created detailed test instructions for frontend and backend to standardize testing approach.
+- Add routing and user management features
+- Integrated react-router-dom
+- Created UserList component to display users
+- Added user service for fetching users from the backend
+- Enhanced error handling in request function
+- Added user service tests
 
 ## Known issues
 

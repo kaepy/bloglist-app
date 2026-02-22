@@ -7,15 +7,18 @@
  * collapse the form after a successful submission from inside the child.
  */
 
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import { useRef } from "react";
 import { useUser } from "./hooks/useUser";
 import { useAuth } from "./hooks/useAuth";
 
 import LoginForm from "./components/LoginForm";
 import Notification from "./components/Notification";
-import Bloglist from "./components/Bloglist";
+import BlogList from "./components/BlogList";
 import Togglable from "./components/Togglable";
 import BlogForm from "./components/BlogForm";
+import UserList from "./components/UserList";
 
 const App = () => {
   const { user } = useUser();
@@ -26,7 +29,7 @@ const App = () => {
   if (!user) {
     return (
       <div>
-        <h2>blogs</h2>
+        <h2>Blogs</h2>
         <Notification />
         <LoginForm handleLogin={handleLogin} />
       </div>
@@ -34,21 +37,31 @@ const App = () => {
   }
 
   return (
-    <div>
-      <h2>Blogs</h2>
-      <Notification />
-
+    <Router>
       <div>
-        {user.name} logged in
-        <button onClick={handleLogout}>logout</button>
+        <h2>Blogs</h2>
+        <Notification />
+        <div>
+          {user.name} logged in
+          <button onClick={handleLogout}>logout</button>
+        </div>
+
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <BlogList />
+                <Togglable buttonLabel="New blog" ref={blogFormRef}>
+                  <BlogForm togglableRef={blogFormRef} />
+                </Togglable>
+              </>
+            }
+          />
+          <Route path="/users" element={<UserList />} />
+        </Routes>
       </div>
-
-      <Bloglist />
-
-      <Togglable buttonLabel="New blog" ref={blogFormRef}>
-        <BlogForm togglableRef={blogFormRef} />
-      </Togglable>
-    </div>
+    </Router>
   );
 };
 

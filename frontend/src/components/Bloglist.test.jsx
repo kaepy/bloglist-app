@@ -1,13 +1,13 @@
 /**
- * @file Bloglist.test.jsx
- * Tests for the Bloglist component.
+ * @file BlogList.test.jsx
+ * Tests for the BlogList component.
  *
  * Tests cover:
  * - Shows a loading indicator while blogs are being fetched
  * - Renders all blogs once data is loaded
  * - Renders blogs sorted by likes in descending order
  *
- * Bloglist uses useQuery (needs QueryClientProvider) and renders Blog
+ * BlogList uses useQuery (needs QueryClientProvider) and renders Blog
  * components which need UserContextProvider and NotificationContextProvider.
  * The getAll service function is mocked to control what data is returned.
  *
@@ -25,7 +25,7 @@ import { UserContextProvider } from "../contexts/UserContext";
 import { NotificationContextProvider } from "../contexts/NotificationContext";
 import storage from "../services/storage";
 import * as blogService from "../services/blogs";
-import Bloglist from "./Bloglist";
+import BlogList from "./BlogList";
 
 vi.mock("../services/blogs", () => ({
   getAll: vi.fn(),
@@ -65,24 +65,24 @@ const blogs = [
 ];
 
 /**
- * Renders Bloglist inside all required providers.
+ * Renders BlogList inside all required providers.
  * Accepts a pre-configured QueryClient so each test can control cache state.
  */
-const renderBloglist = (queryClient) => {
+const renderBlogList = (queryClient) => {
   storage.loadUser.mockReturnValue(null); // No logged-in user needed for these tests
 
   render(
     <QueryClientProvider client={queryClient}>
       <UserContextProvider>
         <NotificationContextProvider>
-          <Bloglist />
+          <BlogList />
         </NotificationContextProvider>
       </UserContextProvider>
     </QueryClientProvider>,
   );
 };
 
-describe("Bloglist", () => {
+describe("BlogList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -95,7 +95,7 @@ describe("Bloglist", () => {
       defaultOptions: { queries: { retry: false } },
     });
 
-    renderBloglist(queryClient);
+    renderBlogList(queryClient);
 
     expect(screen.getByText("loading blogs...")).toBeTruthy();
   });
@@ -105,10 +105,10 @@ describe("Bloglist", () => {
     blogService.getAll.mockResolvedValue(blogs);
 
     const queryClient = new QueryClient();
-    // Pre-seed the cache so Bloglist renders immediately without waiting for the fetch
+    // Pre-seed the cache so BlogList renders immediately without waiting for the fetch
     queryClient.setQueryData(["blogs"], blogs);
 
-    renderBloglist(queryClient);
+    renderBlogList(queryClient);
 
     expect(screen.getByText("First Blog", { exact: false })).toBeTruthy();
     expect(screen.getByText("Second Blog", { exact: false })).toBeTruthy();
@@ -121,7 +121,7 @@ describe("Bloglist", () => {
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], blogs);
 
-    renderBloglist(queryClient);
+    renderBlogList(queryClient);
 
     // Get all blog title text from the rendered list
     const blogElements = document.querySelectorAll(".blog");

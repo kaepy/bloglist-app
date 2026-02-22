@@ -30,11 +30,14 @@ const getAuthHeaders = () => {
  */
 const request = async (url, options = {}) => {
   const response = await fetch(url, options);
+
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error || `Request failed: ${response.status}`);
   }
+
   if (response.status === 204) return null;
+
   return response.json();
 };
 
