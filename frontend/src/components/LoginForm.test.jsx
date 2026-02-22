@@ -22,7 +22,6 @@ describe("LoginForm", () => {
   test("renders username input, password input, and login button", () => {
     render(<LoginForm handleLogin={vi.fn()} />);
 
-    expect(screen.getByLabelText ? true : screen.getByPlaceholderText !== undefined || true);
     expect(document.querySelector("#username")).toBeTruthy();
     expect(document.querySelector("#password")).toBeTruthy();
     expect(screen.getByText("Login")).toBeTruthy();

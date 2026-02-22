@@ -20,6 +20,7 @@ import Togglable from "./components/Togglable";
 import BlogForm from "./components/BlogForm";
 import UserList from "./components/UserList";
 import User from "./components/User";
+import Blog from "./components/Blog";
 
 const App = () => {
   const { user } = useUser();
@@ -60,6 +61,7 @@ const App = () => {
           />
           <Route path="/users" element={<UserList />} />
           <Route path="/users/:id" element={<User />} />
+          <Route path="/blogs/:id" element={<Blog />} />
         </Routes>
       </div>
     </Router>

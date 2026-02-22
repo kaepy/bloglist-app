@@ -43,6 +43,8 @@ const request = async (url, options = {}) => {
 
 export const getAll = () => request(baseUrl);
 
+export const getById = (id) => request(`${baseUrl}/${id}`);
+
 export const create = (newObject) =>
   request(baseUrl, {
     method: "POST",

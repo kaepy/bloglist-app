@@ -38,13 +38,13 @@ describe("Blog app", function () {
   });
 
   it("Login form is shown", function () {
-    cy.contains("username").get("#username");
-    cy.contains("password").get("#password");
-    cy.contains("login");
+    cy.get("#username");
+    cy.get("#password");
+    cy.get("#login-button");
   });
 
   describe("Login", function () {
-    it("succeeds with correct credentials", function () {
+    it("Succeeds with correct credentials", function () {
       cy.get("#username").type("himmeli");
       cy.get("#password").type("hommeli");
       cy.get("#login-button").click();
@@ -52,12 +52,12 @@ describe("Blog app", function () {
       cy.contains("Welcome back, Himmeli Hommeli!");
     });
 
-    it("fails with wrong credentials", function () {
+    it("Fails with wrong credentials", function () {
       cy.get("#username").type("himmeli");
       cy.get("#password").type("wrong");
       cy.get("#login-button").click();
 
-      cy.contains("Oops! Wrong credentials. Try again :)");
+      cy.contains("Invalid username or password");
     });
   });
 
@@ -83,7 +83,7 @@ describe("Blog app", function () {
     });
 
     it("A blog can be created", function () {
-      cy.contains("new blog").click();
+      cy.contains("New blog").click();
 
       cy.get("#title").type("title example");
       cy.get("#author").type("author example");
@@ -94,62 +94,100 @@ describe("Blog app", function () {
       cy.contains("title example");
     });
 
-    it("A blog can be liked", function () {
-      // Expand blog details, click like, and verify the count increments
-      cy.contains("another title").as("likeBlog").find("#viewhide-button").click();
+    it("Logging out returns to the login form", function () {
+      cy.contains("logout").click();
 
-      cy.get("@likeBlog").contains("likes").should("contain", "0");
-      cy.get("@likeBlog").find("#like-button").click();
+      // After logout the authenticated Router is torn down; login form should appear
+      cy.get("#login-button");
+    });
+
+    it("Clicking a blog title shows its full details", function () {
+      cy.contains("yet title").click();
+
+      // The detail page must display all key fields
+      cy.contains("yet title");
+      cy.contains("yet author");
+      cy.contains("yet url");
+      cy.contains("0 Likes");
+      // "Added by" link to the creator's user page should be present
+      cy.contains("himmeli");
+    });
+
+    it("Added by link navigates to the user detail page", function () {
+      cy.contains("yet title").click();
+
+      // Click the "Added by himmeli" link on the blog detail page
+      cy.contains("himmeli").click();
+
+      // Should land on the user detail page showing the username and their blogs
+      cy.contains("himmeli");
+      cy.contains("Added blogs");
+      cy.contains("yet title");
+    });
+
+    it("A blog can be liked", function () {
+      // Navigate to the detail page, then interact with the like button there
+      cy.contains("another title").click();
+
+      cy.contains("0 Likes");
+      cy.get("#like-button").click();
 
       cy.contains('New like added to blog "another title"!');
-      // After liking, the blog may re-sort; search from parent to find updated count
-      cy.get("@likeBlog").parent().contains("likes").should("contain", "1");
+      cy.contains("1 Likes");
     });
 
     it("A blog can be removed", function () {
-      cy.contains("and title").as("blogToRemove").find("#viewhide-button").click();
+      // Navigate to the detail page — the remove button lives there after the refactor
+      // window.confirm is auto-stubbed to true by Cypress
+      cy.contains("and title").click();
 
-      cy.get("@blogToRemove").find("#remove-button").click();
+      cy.get("#remove-button").click();
 
+      // onSuccess calls navigate("/"), so we land back on the list automatically
       cy.contains('Blog "and title" removed!');
-      cy.contains("and title").should("not.exist");
+      // Scope to .blog elements — the notification message also contains "and title"
+      // so a document-level cy.contains("and title").should("not.exist") would always fail
+      cy.get(".blog").should("not.contain", "and title");
     });
 
     it("Only blog creator can see remove button", function () {
       // Verify remove button is visible for the creator (himmeli)
-      cy.contains("yet title").as("blogToRemove").find("#viewhide-button").click();
+      cy.contains("yet title").click();
+      cy.get("#remove-button").should("exist");
 
-      cy.get("@blogToRemove").find("#remove-button");
-
-      // Log out himmeli and log in gimmeli (different user)
+      // Go back to the list, then switch to a different user
+      // Aliases don't survive navigation, so we re-find the blog title after login
+      cy.go("back");
       cy.logout();
       cy.login({ username: "gimmeli", password: "gommeli" });
 
       // Verify remove button is NOT visible for non-creator
-      cy.get("@blogToRemove").find("#viewhide-button").click();
-
-      cy.get("@blogToRemove").find("#remove-button").should("not.exist");
+      cy.contains("yet title").click();
+      cy.get("#remove-button").should("not.exist");
     });
 
     it("Blogs are sorted by likes", function () {
-      // Expand all three blogs to access their like buttons
-      cy.get(".blog").contains("yet title").as("likeYetBlog").find("#viewhide-button").click();
-
-      cy.get(".blog").contains("another title").as("likeAnotherBlog").find("#viewhide-button").click();
-
-      cy.get(".blog").contains("and title").as("likeAndBlog").find("#viewhide-button").click();
-
-      // Like "another" 5 times, "yet" 2 times, "and" 0 times
-      // Then verify DOM order matches descending like count
+      // Like "another" 5 times — wait for each count update before the next click
+      // to avoid the stale-cache race condition (both optimistic updates reading the
+      // same blog.likes snapshot if clicks fire before the mutation resolves)
+      cy.contains("another title").click();
       for (let i = 0; i < 5; i++) {
-        cy.get("@likeAnotherBlog").find("#like-button").click();
+        cy.get("#like-button").click();
+        cy.contains(`${i + 1} Likes`);
       }
-      cy.get("@likeAnotherBlog").contains("likes").should("contain", "5");
+      cy.go("back");
 
-      cy.get("@likeYetBlog").find("#like-button").click();
-      cy.get("@likeYetBlog").find("#like-button").click();
-      cy.get("@likeYetBlog").contains("likes").should("contain", "2");
+      // Like "yet" 2 times
+      cy.contains("yet title").click();
+      for (let i = 0; i < 2; i++) {
+        cy.get("#like-button").click();
+        cy.contains(`${i + 1} Likes`);
+      }
+      cy.go("back");
 
+      // "and" stays at 0 likes — verify DOM order matches descending like count
+      // voteBlogMutation.onSuccess updates the ["blogs"] cache via setQueryData,
+      // so the list re-sorts without a network refetch
       cy.get(".blog").eq(0).should("contain", "another title");
       cy.get(".blog").eq(1).should("contain", "yet title");
       cy.get(".blog").eq(2).should("contain", "and title");

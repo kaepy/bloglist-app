@@ -1,19 +1,18 @@
 # CHANGE LOGS
 
-## 7.15: yksittäisen käyttäjän näkymä
+## 7.16: blogin näkymä
 
-Tee sovellukseen yksittäisen käyttäjän näkymä, jolta selviää mm. käyttäjän lisäämät blogit
+Toteuta sovellukseen oma näkymä yksittäisille blogeille. Näkymä voi näyttää seuraavalta
 
 ## Changes
 
-- Add user profile page and enhance user-related features
-- Implemented User component to display user details and their blogs.
-- Updated UserList to link usernames to their respective profile pages.
-- Enhanced Blog component to link to user profiles.
-- Added getUserById service function for fetching user data by ID.
-- Refactored login and users controllers to supoprt user.id
-- Updates Blog.test.js
-- Added tests for User and UserList components
+- Implement blog detail view and refactor blog list component.
+- Added BlogListItem component to display individual blog titles as links.
+- Created Blog component to show detailed blog information including author, URL, and likes.
+- Integrated blog detail fetching with useQuery and added like/remove functionality.
+- Updated routing to include blog detail paths.
+- Removed obsolete Blog.test.js and added Blog.test.jsx for detail page testing.
+- Small refactoring and removed unnecessary stuff
 
 ## Known issues
 
@@ -32,3 +31,12 @@ Tee sovellukseen yksittäisen käyttäjän näkymä, jolta selviää mm. käytt�
   // React 19 idiomatic
   const user = use(UserContext);
   ```
+
+- Notification timer leak — NotificationContext.jsx. showNotification starts a new setTimeout each call but never cancels the previous one. Calling it twice in rapid succession (e.g., like then delete) causes the first timer to prematurely clear the second notification. Fix: store the timer in a useRef and call clearTimeout before each new setTimeout.
+- NotificationDispatch is exposed in context — NotificationContext.jsx. Any consumer can call notificationDispatch directly, bypassing showNotification and its auto-clear timer entirely. It should be removed from the context value — showNotification is the only API consumers need.
+- BrowserRouter inside a conditional — App.jsx. The unauthenticated view is rendered outside <BrowserRouter>, meaning useNavigate / Link / useParams would crash if used in LoginForm or Notification. The <BrowserRouter> should be moved to main.jsx to wrap the entire app unconditionally. Also: there is no nav link to users anywhere — users can't reach UserList without typing the URL.
+- Like button has no pending guard — Blog.jsx. Rapid clicking sends multiple requests using the same stale blog.likes value from the cache snapshot. The like button should be disabled={voteBlogMutation.isPending}.
+- Cypress commands.js hardcodes URLs
+- request() helper is duplicated — services/blogs.js, services/users.js
+- login.js uses axios — services/login.js. This is the only service not using native fetch with the request() pattern. It produces a different error shape (error.response.data.error) than all other services (error.message), which forces useAuth.js to use error.response?.data?.error || error.message to handle both shapes.
+- Test files with JSX use .js extension: BlogForm.test.js, BlogListItem.test.js

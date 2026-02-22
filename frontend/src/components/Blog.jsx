@@ -1,61 +1,45 @@
 /**
  * @component Blog
- * Displays a single blog entry with expandable details.
+ * Detail page for a single blog post. Reads :id from the URL, fetches the blog
+ * with useQuery, and renders title, author, URL, likes, and the creator's username.
  *
- * Features:
- * - Collapsed view shows only the title and a "view" toggle button
- * - Expanded view shows author, url, likes (with like button), and username
- * - The "remove" button is only visible to the blog's creator
- * - Uses React Query mutations for like and delete operations
- * - Notifications via NotificationContext on success/error
+ * Like button increments likes and syncs both the detail cache ["blog", id] and the
+ * list cache ["blogs"] so sort order is correct when navigating back to the list.
  *
- * Props:
- * - blog: Blog object { id, title, author, url, likes, user }
+ * Remove button is only rendered when the logged-in user is the blog's creator.
+ * On successful delete, navigates to "/" and removes the entry from the list cache
+ * via setQueryData — no extra network request needed.
  */
+import { useParams, Link, useNavigate } from "react-router-dom";
 
-import { useState } from "react";
-import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { getById, update, remove } from "../services/blogs";
+
+import { useNotification } from "../hooks/useNotification";
 import { useUser } from "../hooks/useUser";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { update, remove } from "../services/blogs";
-import { useNotification } from "../hooks/useNotification";
-
-const Blog = ({ blog }) => {
-  const [showBlogDetail, setShowBlogDetail] = useState(false);
+const Blog = () => {
+  const { id } = useParams();
+  const { data: blog, isLoading, isError } = useQuery({ queryKey: ["blog", id], queryFn: () => getById(id) });
 
   const { user } = useUser();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { showNotification } = useNotification();
-
-  // Inline styles for blog card layout
-  const blogStyle = {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 2,
-    border: "solid",
-    borderWidth: 1,
-    marginBottom: 5,
-    listStyleType: "none",
-  };
-
-  const ulStyle = {
-    margin: 0,
-    padding: 0,
-    listStyleType: "none",
-  };
 
   const voteBlogMutation = useMutation({
     mutationFn: ({ id, updatedBlog }) => update(id, updatedBlog),
     onSuccess: (updatedBlog) => {
+      // keep the list cache in sync (so sort order is correct when navigating back)
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(
         ["blogs"],
         blogs.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)),
       );
+      // update the detail page cache (so the count updates immediately)
+      queryClient.setQueryData(["blog", id], updatedBlog);
       showNotification(`New like added to blog "${updatedBlog.title}"!`, 5, "success");
     },
     onError: (error) => {
@@ -71,12 +55,16 @@ const Blog = ({ blog }) => {
         ["blogs"],
         blogs.filter((b) => b.id !== blogId),
       );
+      navigate("/");
       showNotification(`Blog "${blog.title}" removed!`, 5, "success");
     },
     onError: (error) => {
       showNotification(`Error deleting blog: ${error.response?.data?.error || error.message}`, 5, "error");
     },
   });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Blog not found.</div>;
 
   const updateLikes = (event) => {
     event.preventDefault();
@@ -98,54 +86,31 @@ const Blog = ({ blog }) => {
     }
   };
 
-  const buttonToggle = () => setShowBlogDetail(!showBlogDetail);
-  const buttonLabel = showBlogDetail ? "hide" : "view";
-
   return (
-    <div className="blog" style={blogStyle}>
-      {blog.title}{" "}
-      <button id="viewhide-button" onClick={buttonToggle}>
-        {" "}
-        {buttonLabel}{" "}
-      </button>
-      {showBlogDetail && (
-        <ul style={ulStyle}>
-          <li>author: {blog.author}</li>
-          <li>url: {blog.url}</li>
-          <li>
-            likes: {blog.likes}{" "}
-            <button id="like-button" onClick={updateLikes}>
-              like
-            </button>
-          </li>
-          <li>
-            user: <Link to={`/users/${blog.user?.id}`}>{blog.user?.username ?? "unknown"}</Link>
-          </li>
-          {blog.user && user.username === blog.user.username && (
-            <li>
-              <button id="remove-button" onClick={deleteBlog}>
-                remove
-              </button>
-            </li>
-          )}
-        </ul>
-      )}
+    <div>
+      <h2>{blog.title}</h2>
+      <div>Author: {blog.author}</div>
+      <div>
+        Url: <a href={blog.url}>{blog.url}</a>
+      </div>
+      <div>
+        {blog.likes} Likes{" "}
+        <button id="like-button" onClick={updateLikes}>
+          like
+        </button>
+      </div>
+      <div>
+        Added by <Link to={`/users/${blog.user.id}`}>{blog.user.username}</Link>
+      </div>
+      <div>
+        {blog.user && user.username === blog.user.username && (
+          <button id="remove-button" onClick={deleteBlog}>
+            remove
+          </button>
+        )}
+      </div>
     </div>
   );
-};
-
-Blog.propTypes = {
-  blog: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    author: PropTypes.string.isRequired,
-    url: PropTypes.string.isRequired,
-    likes: PropTypes.number.isRequired,
-    user: PropTypes.shape({
-      username: PropTypes.string.isRequired,
-      id: PropTypes.string.isRequired,
-    }),
-  }).isRequired,
 };
 
 export default Blog;

@@ -1,3 +1,8 @@
+/**
+ * @component UserList
+ * Fetches all users and renders them in a table with their blog counts.
+ * Each username links to the user's detail page (/users/:id).
+ */
 import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "../services/users";
 import { Link } from "react-router-dom";
@@ -7,6 +12,10 @@ const UserList = () => {
 
   if (users.isLoading) {
     return <div>loading users...</div>;
+  }
+
+  if (users.isError) {
+    return <div>Error loading users. Please try again.</div>;
   }
 
   return (

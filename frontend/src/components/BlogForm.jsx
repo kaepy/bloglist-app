@@ -12,6 +12,7 @@
 
 import PropTypes from "prop-types";
 
+import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { create } from "../services/blogs";
 
@@ -20,12 +21,19 @@ import { useNotification } from "../hooks/useNotification";
 const BlogForm = ({ togglableRef }) => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
+  // Ref to the <form> element so onSuccess can reset fields after the async mutation
+  // resolves — event.target is unavailable at that point
+  const formRef = useRef();
 
   const newBlogMutation = useMutation({
     mutationFn: create,
     onSuccess: (newBlog) => {
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(["blogs"], blogs.concat(newBlog));
+
+      // Clear and collapse only on success — preserve user input if the request fails
+      formRef.current.reset();
+      togglableRef?.current?.toggleVisibility();
 
       showNotification(`A new blog "${newBlog.title}" by ${newBlog.author} added!`, 5, "success");
     },
@@ -45,20 +53,12 @@ const BlogForm = ({ togglableRef }) => {
     };
 
     newBlogMutation.mutate(content);
-
-    // Clear form fields after submission
-    event.target.elements.title.value = "";
-    event.target.elements.author.value = "";
-    event.target.elements.url.value = "";
-
-    // Collapse the Togglable wrapper
-    togglableRef?.current?.toggleVisibility();
   };
 
   return (
     <div>
       <h2>Create new blog</h2>
-      <form onSubmit={addBlog}>
+      <form onSubmit={addBlog} ref={formRef}>
         <div>
           title: <input id="title" placeholder="placeholder title" />
         </div>

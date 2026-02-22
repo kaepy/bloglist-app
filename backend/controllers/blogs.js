@@ -25,7 +25,7 @@ blogsRouter.get("/", async (request, response) => {
 
 /** GET /:id - Retrieve a single blog by its MongoDB ID */
 blogsRouter.get("/:id", async (request, response) => {
-  const blog = await Blog.findById(request.params.id);
+  const blog = await Blog.findById(request.params.id).populate("user", { username: 1, name: 1 });
   if (blog) {
     response.json(blog);
   } else {
@@ -67,29 +67,25 @@ blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
  * Requires authentication. Only the blog's creator can delete it.
  * Returns 204 No Content on success, 401 if the user is not the owner.
  */
-blogsRouter.delete(
-  "/:id",
-  middleware.userExtractor,
-  async (request, response) => {
-    const blog = await Blog.findById(request.params.id);
+blogsRouter.delete("/:id", middleware.userExtractor, async (request, response) => {
+  const blog = await Blog.findById(request.params.id);
 
-    if (!blog) {
-      return response.status(404).json({ error: "blog not found" });
-    }
+  if (!blog) {
+    return response.status(404).json({ error: "blog not found" });
+  }
 
-    const blogCreator = blog.user.toString();
-    const user = request.user;
-    const loggedUser = user._id.toString();
+  const blogCreator = blog.user.toString();
+  const user = request.user;
+  const loggedUser = user._id.toString();
 
-    // Only allow deletion if the authenticated user is the blog's creator
-    if (loggedUser === blogCreator) {
-      await Blog.findByIdAndDelete(request.params.id);
-      return response.status(204).end();
-    }
+  // Only allow deletion if the authenticated user is the blog's creator
+  if (loggedUser === blogCreator) {
+    await Blog.findByIdAndDelete(request.params.id);
+    return response.status(204).end();
+  }
 
-    response.status(401).json({ error: "unauthorized to delete this blog" });
-  },
-);
+  response.status(401).json({ error: "unauthorized to delete this blog" });
+});
 
 /**
  * PUT /:id - Update a blog.

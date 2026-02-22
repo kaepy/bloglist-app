@@ -3,7 +3,9 @@
  *
  * - Registers the React plugin for JSX/TSX support.
  * - Proxies API requests to the backend during development.
- * - Configures Vitest with JSDOM, globals, and setup file.
+ *
+ * Vitest configuration lives in vitest.config.js — when vitest.config.js
+ * exists it takes full priority over any `test:` block here.
  *
  * @type {import('vite').UserConfig}
  */
@@ -21,10 +23,5 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-  },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: "./testSetup.js",
   },
 });

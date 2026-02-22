@@ -7,7 +7,7 @@
  * because Array.sort() mutates in place, and React Query's cached data should not be mutated directly.
  */
 
-import Blog from "./Blog";
+import BlogListItem from "./BlogListItem";
 
 import { useQuery } from "@tanstack/react-query";
 import { getAll } from "../services/blogs";
@@ -19,12 +19,16 @@ const BlogList = () => {
     return <div>loading blogs...</div>;
   }
 
+  if (blogs.isError) {
+    return <div>Error loading blogs. Please try again.</div>;
+  }
+
   return (
     <div>
       {[...blogs.data]
         .sort((a, b) => b.likes - a.likes)
         .map((blog) => (
-          <Blog key={blog.id} blog={blog} />
+          <BlogListItem key={blog.id} blog={blog} />
         ))}
     </div>
   );
