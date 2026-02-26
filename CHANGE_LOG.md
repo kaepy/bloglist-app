@@ -1,13 +1,17 @@
 # CHANGE LOGS
 
-## 7.17: navigointi
+## 7.18: kommentit, step1
 
-Tee sovellukseen navigaatiomenu
+Tee sovellukseen mahdollisuus blogien kommentointiin
 
 ## Changes
 
-- Enhance layout by adding navigation links for Blogs and Users
-- Added logged in user's name
+- Add comments feature to blog posts
+- Updated blog model to include comments array
+- Implemented API endpoint for adding comments to a blog
+- Modified Blog component to display comments
+- Added tests for comments functionality in Blog.test.jsx
+- Created new Comments component
 
 ## Known issues
 

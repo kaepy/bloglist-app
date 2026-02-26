@@ -109,6 +109,14 @@ const Blog = () => {
           </button>
         )}
       </div>
+      <div>
+        <h2>Comments</h2>
+        <ul>
+          {blog.comments?.length > 0
+            ? blog.comments.map((comment, index) => <li key={index}>{comment}</li>)
+            : "No comments yet."}
+        </ul>
+      </div>
     </div>
   );
 };

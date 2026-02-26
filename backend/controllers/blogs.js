@@ -49,6 +49,7 @@ blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
     url: body.url,
     likes: body.likes,
     user: user._id,
+    comments: body.comments || [],
   });
 
   // Save blog and populate user info for the response
@@ -117,6 +118,21 @@ blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
   const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {
     new: true,
   }).populate("user", { username: 1, name: 1 });
+
+  response.json(updatedBlog);
+});
+
+blogsRouter.post("/:id/comments", middleware.userExtractor, async (request, response) => {
+  const { comment } = request.body;
+  const blog = await Blog.findById(request.params.id);
+
+  if (!blog) {
+    return response.status(404).json({ error: "blog not found" });
+  }
+
+  blog.comments = blog.comments.concat(comment);
+  const updatedBlog = await blog.save();
+  await updatedBlog.populate("user", { username: 1, name: 1 });
 
   response.json(updatedBlog);
 });

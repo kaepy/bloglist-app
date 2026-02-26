@@ -1,0 +1,9 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RpIiwiaWQiOiI2OTdjODkyNGJiNzdjNzFhNDlkYmRjZDQiLCJpYXQiOjE3NzIxMzYxOTEsImV4cCI6MTc3MjEzOTc5MX0.h7izwSezWONPGio23Cah5Ga-9jtBxeCpfp67rY_slA0
+
+POST http://localhost:3001/api/blogs/697c8641bb77c71a49dbdcb7/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "comment": "Thanks for sharing this blog!"
+}

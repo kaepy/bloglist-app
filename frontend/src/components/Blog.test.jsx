@@ -58,6 +58,7 @@ const blog = {
     username: "testuser",
     id: "user123",
   },
+  comments: [],
 };
 
 /**
@@ -65,10 +66,12 @@ const blog = {
  *
  * @param {string} username - The currently logged-in user. Defaults to
  *   the blog owner so remove-button visibility tests can pass easily.
+ * @param {object} blogData - The blog object to mock. Defaults to the
+ *   global `blog` constant. Pass a custom object to test different states.
  */
-const renderBlog = (username = "testuser") => {
+const renderBlog = (username = "testuser", blogData = blog) => {
   storage.loadUser.mockReturnValue({ username });
-  getById.mockResolvedValue(blog);
+  getById.mockResolvedValue(blogData); // Use the passed blog data
 
   // retry:false prevents React Query from retrying failed queries,
   // which would slow down tests and produce noisy console errors.
@@ -76,9 +79,8 @@ const renderBlog = (username = "testuser") => {
     defaultOptions: { queries: { retry: false } },
   });
 
-  // Pre-seed the blogs list so onSuccess callbacks don't crash when
-  // calling queryClient.getQueryData(["blogs"]).map() or .filter().
-  queryClient.setQueryData(["blogs"], [blog]);
+  // Pre-seed with the actual blog being rendered (not always the global `blog`)
+  queryClient.setQueryData(["blogs"], [blogData]);
 
   render(
     // initialEntries puts the router at the blog detail URL
@@ -162,5 +164,29 @@ describe("Blog Detail Page", () => {
 
     expect(window.confirm).toHaveBeenCalled();
     expect(remove).toHaveBeenCalledWith("123");
+  });
+
+  test("renders comments when blog has comments", async () => {
+    const blogWithComments = {
+      ...blog,
+      comments: ["Great post!", "Very informative.", "Thanks for sharing!"],
+    };
+    renderBlog("testuser", blogWithComments); // Pass custom blog as second arg
+
+    await waitFor(() => screen.getByText("Testing Blog Detail"));
+
+    expect(screen.getByText("Great post!")).toBeDefined();
+    expect(screen.getByText("Very informative.")).toBeDefined();
+    expect(screen.getByText("Thanks for sharing!")).toBeDefined();
+  });
+
+  test("shows 'No comments yet.' when comments array is empty", async () => {
+    const blogWithoutComments = { ...blog, comments: [] };
+    getById.mockResolvedValue(blogWithoutComments);
+    renderBlog("testuser", blogWithoutComments); // Pass custom blog as second arg
+
+    await waitFor(() => screen.getByText("Testing Blog Detail"));
+
+    expect(screen.getByText("No comments yet.")).toBeDefined();
   });
 });
