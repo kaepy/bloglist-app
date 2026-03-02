@@ -29,10 +29,10 @@ import * as blogService from "../services/blogs";
 import BlogList from "./BlogList";
 
 vi.mock("../services/blogs", () => ({
-  getAll: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  remove: vi.fn(),
+  getAllBlogs: vi.fn(),
+  createBlog: vi.fn(),
+  updateBlog: vi.fn(),
+  removeBlog: vi.fn(),
 }));
 
 vi.mock("../services/storage");
@@ -92,7 +92,7 @@ describe("BlogList", () => {
 
   test("shows loading indicator while fetching blogs", () => {
     // Mock getAll to return a promise that never resolves, keeping query in loading state
-    blogService.getAll.mockReturnValue(new Promise(() => {}));
+    blogService.getAllBlogs.mockReturnValue(new Promise(() => {}));
 
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -105,7 +105,7 @@ describe("BlogList", () => {
 
   test("renders all blogs once data is loaded", () => {
     // Mock getAll so background refetch also returns valid data (prevents React Query warnings)
-    blogService.getAll.mockResolvedValue(blogs);
+    blogService.getAllBlogs.mockResolvedValue(blogs);
 
     const queryClient = new QueryClient();
     // Pre-seed the cache so BlogList renders immediately without waiting for the fetch
@@ -119,7 +119,7 @@ describe("BlogList", () => {
   });
 
   test("renders blogs sorted by likes in descending order", () => {
-    blogService.getAll.mockResolvedValue(blogs);
+    blogService.getAllBlogs.mockResolvedValue(blogs);
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], blogs);

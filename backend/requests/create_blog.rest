@@ -1,5 +1,5 @@
 // insert auth token below
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RpIiwiaWQiOiI2OTdjODkyNGJiNzdjNzFhNDlkYmRjZDQiLCJpYXQiOjE3NzIxMjE2OTcsImV4cCI6MTc3MjEyNTI5N30.r63UZcZ0gUge94JMsbaXMDg2Q6pao8y_SyNncV7Ayb8
+@token = <add your JWT token here>
 
 POST http://localhost:3001/api/blogs
 Content-Type: application/json

@@ -11,17 +11,18 @@
  * via setQueryData — no extra network request needed.
  */
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useRef } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { getById, update, remove } from "../services/blogs";
+import { getBlogById, updateBlog, commentBlog, removeBlog } from "../services/blogs";
 
 import { useNotification } from "../hooks/useNotification";
 import { useUser } from "../hooks/useUser";
 
 const Blog = () => {
   const { id } = useParams();
-  const { data: blog, isLoading, isError } = useQuery({ queryKey: ["blog", id], queryFn: () => getById(id) });
+  const { data: blog, isLoading, isError } = useQuery({ queryKey: ["blog", id], queryFn: () => getBlogById(id) });
 
   const { user } = useUser();
   const queryClient = useQueryClient();
@@ -30,7 +31,7 @@ const Blog = () => {
   const { showNotification } = useNotification();
 
   const voteBlogMutation = useMutation({
-    mutationFn: ({ id, updatedBlog }) => update(id, updatedBlog),
+    mutationFn: ({ id, updatedBlog }) => updateBlog(id, updatedBlog),
     onSuccess: (updatedBlog) => {
       // keep the list cache in sync (so sort order is correct when navigating back)
       const blogs = queryClient.getQueryData(["blogs"]);
@@ -48,7 +49,7 @@ const Blog = () => {
   });
 
   const deleteBlogMutation = useMutation({
-    mutationFn: (id) => remove(id),
+    mutationFn: (id) => removeBlog(id),
     onSuccess: (_, blogId) => {
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(
@@ -62,6 +63,20 @@ const Blog = () => {
       showNotification(`Error deleting blog: ${error.response?.data?.error || error.message}`, 5, "error");
     },
   });
+
+  const newCommentMutation = useMutation({
+    mutationFn: (comment) => commentBlog(id, comment),
+    onSuccess: (updatedBlog) => {
+      queryClient.setQueryData(["blog", blog.id], updatedBlog);
+      formRef.current.reset();
+      showNotification(`Comment added to blog "${updatedBlog.title}"!`, 5, "success");
+    },
+    onError: (error) => {
+      showNotification(`Error adding comment: ${error.response?.data?.error || error.message}`, 5, "error");
+    },
+  });
+
+  const formRef = useRef();
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Blog not found.</div>;
@@ -84,6 +99,12 @@ const Blog = () => {
     if (window.confirm(`Are you sure you want to remove ${blog.title}?`)) {
       deleteBlogMutation.mutate(blog.id);
     }
+  };
+
+  const addComment = (event) => {
+    event.preventDefault();
+    const comment = event.target.elements.comment.value;
+    newCommentMutation.mutate(comment);
   };
 
   return (
@@ -111,6 +132,12 @@ const Blog = () => {
       </div>
       <div>
         <h2>Comments</h2>
+        <form onSubmit={addComment} ref={formRef}>
+          <input id="comment" placeholder="Add a comment..." />
+          <button id="add-comment-button" type="submit">
+            Add comment
+          </button>
+        </form>
         <ul>
           {blog.comments?.length > 0
             ? blog.comments.map((comment, index) => <li key={index}>{comment}</li>)

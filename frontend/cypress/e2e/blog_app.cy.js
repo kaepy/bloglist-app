@@ -10,6 +10,7 @@
  *   - Login form visibility
  *   - Login success/failure
  *   - Blog CRUD operations (create, like, delete)
+ *   - Comments (add comments, display comments)
  *   - Authorization (only creator sees remove button)
  *   - Sorting by likes
  */
@@ -164,6 +165,41 @@ describe("Blog app", function () {
       // Verify remove button is NOT visible for non-creator
       cy.contains("yet title").click();
       cy.get("#remove-button").should("not.exist");
+    });
+
+    it("User can add a comment to a blog", function () {
+      cy.contains("yet title").click();
+
+      // Initially shows "No comments yet."
+      cy.contains("No comments yet.");
+
+      // Add a comment
+      cy.get("#comment").type("This is a great blog post!");
+      cy.get("#add-comment-button").click();
+
+      // Verify the comment appears in the list
+      cy.contains("This is a great blog post!");
+
+      // Verify "No comments yet." is no longer shown
+      cy.contains("No comments yet.").should("not.exist");
+    });
+
+    it("User can add multiple comments to a blog", function () {
+      cy.contains("yet title").click();
+
+      // Add first comment
+      cy.get("#comment").type("First comment");
+      cy.get("#add-comment-button").click();
+      cy.contains("First comment");
+
+      // Add second comment
+      cy.get("#comment").type("Second comment");
+      cy.get("#add-comment-button").click();
+      cy.contains("Second comment");
+
+      // Both comments should be visible
+      cy.contains("First comment");
+      cy.contains("Second comment");
     });
 
     it("Blogs are sorted by likes", function () {

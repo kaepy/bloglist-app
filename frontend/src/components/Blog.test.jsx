@@ -3,7 +3,7 @@
  * Integration tests for the Blog detail page component.
  *
  * The component reads :id from useParams, fetches via useQuery, and
- * renders full blog details with like/remove mutations. Tests are
+ * renders full blog details with like/remove/comment mutations. Tests are
  * rendered inside a real route (<Route path="/blogs/:id">) so useParams
  * and useNavigate work without mocking react-router-dom.
  *
@@ -12,8 +12,8 @@
  * cache in renderBlog() or the onSuccess callbacks will throw.
  *
  * Mock setup:
- * - getById: resolves the test blog for useQuery
- * - update/remove: intercepted to verify calls without HTTP
+ * - getBlogById: resolves the test blog for useQuery
+ * - updateBlog/commentBlog/removeBlog: intercepted to verify calls without HTTP
  * - storage.loadUser: returns the logged-in user for UserContext
  *
  * Test coverage:
@@ -22,6 +22,9 @@
  * - Clicking like twice calls update exactly twice
  * - Remove button visible only to the blog owner
  * - Remove button calls remove service after confirm
+ * - Renders existing comments or shows empty state
+ * - Comment form submission calls commentBlog service
+ * - Comment form clears after successful submission
  */
 
 import "@testing-library/jest-dom";
@@ -33,17 +36,16 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NotificationContextProvider } from "../contexts/NotificationContext";
 import { UserContextProvider } from "../contexts/UserContext";
-import { getById, update, remove } from "../services/blogs";
+import { getBlogById, updateBlog, commentBlog, removeBlog } from "../services/blogs";
 import storage from "../services/storage";
 
 import Blog from "./Blog";
 
 vi.mock("../services/blogs", () => ({
-  getAll: vi.fn(),
-  getById: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  remove: vi.fn(),
+  getBlogById: vi.fn(),
+  updateBlog: vi.fn(),
+  commentBlog: vi.fn(),
+  removeBlog: vi.fn(),
 }));
 
 vi.mock("../services/storage");
@@ -71,7 +73,7 @@ const blog = {
  */
 const renderBlog = (username = "testuser", blogData = blog) => {
   storage.loadUser.mockReturnValue({ username });
-  getById.mockResolvedValue(blogData); // Use the passed blog data
+  getBlogById.mockResolvedValue(blogData); // Use the passed blog data
 
   // retry:false prevents React Query from retrying failed queries,
   // which would slow down tests and produce noisy console errors.
@@ -113,19 +115,19 @@ describe("Blog Detail Page", () => {
   });
 
   test("clicking like calls update with incremented like count", async () => {
-    update.mockResolvedValue({ ...blog, likes: 6 });
+    updateBlog.mockResolvedValue({ ...blog, likes: 6 });
     renderBlog();
     const userEvt = userEvent.setup();
 
     await waitFor(() => screen.getByRole("button", { name: /like/i }));
     await userEvt.click(screen.getByRole("button", { name: /like/i }));
 
-    expect(update).toHaveBeenCalledTimes(1);
-    expect(update).toHaveBeenCalledWith("123", { ...blog, likes: 6 });
+    expect(updateBlog).toHaveBeenCalledTimes(1);
+    expect(updateBlog).toHaveBeenCalledWith("123", { ...blog, likes: 6 });
   });
 
   test("clicking like twice calls update exactly twice", async () => {
-    update.mockResolvedValue({ ...blog, likes: 6 });
+    updateBlog.mockResolvedValue({ ...blog, likes: 6 });
     renderBlog();
     const userEvt = userEvent.setup();
 
@@ -134,7 +136,7 @@ describe("Blog Detail Page", () => {
     await userEvt.click(likeButton);
     await userEvt.click(likeButton);
 
-    expect(update).toHaveBeenCalledTimes(2);
+    expect(updateBlog).toHaveBeenCalledTimes(2);
   });
 
   test("remove button is visible to the blog owner", async () => {
@@ -153,7 +155,7 @@ describe("Blog Detail Page", () => {
   });
 
   test("clicking remove confirms and calls remove service with blog id", async () => {
-    remove.mockResolvedValue({});
+    removeBlog.mockResolvedValue({});
     window.confirm = vi.fn(() => true);
 
     renderBlog("testuser");
@@ -163,7 +165,7 @@ describe("Blog Detail Page", () => {
     await userEvt.click(screen.getByRole("button", { name: /remove/i }));
 
     expect(window.confirm).toHaveBeenCalled();
-    expect(remove).toHaveBeenCalledWith("123");
+    expect(removeBlog).toHaveBeenCalledWith("123");
   });
 
   test("renders comments when blog has comments", async () => {
@@ -182,11 +184,55 @@ describe("Blog Detail Page", () => {
 
   test("shows 'No comments yet.' when comments array is empty", async () => {
     const blogWithoutComments = { ...blog, comments: [] };
-    getById.mockResolvedValue(blogWithoutComments);
+    getBlogById.mockResolvedValue(blogWithoutComments);
     renderBlog("testuser", blogWithoutComments); // Pass custom blog as second arg
 
     await waitFor(() => screen.getByText("Testing Blog Detail"));
 
     expect(screen.getByText("No comments yet.")).toBeDefined();
+  });
+
+  test("submitting comment form calls commentBlog service with the comment text", async () => {
+    const blogWithNewComment = {
+      ...blog,
+      comments: ["This is a new comment"],
+    };
+    commentBlog.mockResolvedValue(blogWithNewComment);
+    renderBlog("testuser");
+    const userEvt = userEvent.setup();
+
+    await waitFor(() => screen.getByPlaceholderText("Add a comment..."));
+
+    const input = screen.getByPlaceholderText("Add a comment...");
+    const submitButton = screen.getByRole("button", { name: /add comment/i });
+
+    await userEvt.type(input, "This is a new comment");
+    await userEvt.click(submitButton);
+
+    expect(commentBlog).toHaveBeenCalledTimes(1);
+    expect(commentBlog).toHaveBeenCalledWith("123", "This is a new comment");
+  });
+
+  test("form is cleared after successful comment submission", async () => {
+    const blogWithNewComment = {
+      ...blog,
+      comments: ["Test comment"],
+    };
+    commentBlog.mockResolvedValue(blogWithNewComment);
+    renderBlog("testuser");
+    const userEvt = userEvent.setup();
+
+    await waitFor(() => screen.getByPlaceholderText("Add a comment..."));
+
+    const input = screen.getByPlaceholderText("Add a comment...");
+    const submitButton = screen.getByRole("button", { name: /add comment/i });
+
+    await userEvt.type(input, "Test comment");
+    await userEvt.click(submitButton);
+
+    // Wait for mutation to complete and form to reset
+    await waitFor(() => {
+      expect(input.value).toBe("");
+    });
   });
 });

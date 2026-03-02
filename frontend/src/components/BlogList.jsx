@@ -10,10 +10,10 @@
 import BlogListItem from "./BlogListItem";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAll } from "../services/blogs";
+import { getAllBlogs } from "../services/blogs";
 
 const BlogList = () => {
-  const blogs = useQuery({ queryKey: ["blogs"], queryFn: getAll });
+  const blogs = useQuery({ queryKey: ["blogs"], queryFn: getAllBlogs });
 
   if (blogs.isLoading) {
     return <div>loading blogs...</div>;

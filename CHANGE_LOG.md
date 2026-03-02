@@ -1,17 +1,17 @@
 # CHANGE LOGS
 
-## 7.18: kommentit, step1
+## 7.19: kommentit, step2
 
-Tee sovellukseen mahdollisuus blogien kommentointiin
+Laajenna sovellusta siten, että kommentointi onnistuu frontendista käsin
 
 ## Changes
 
-- Add comments feature to blog posts
-- Updated blog model to include comments array
-- Implemented API endpoint for adding comments to a blog
-- Modified Blog component to display comments
-- Added tests for comments functionality in Blog.test.jsx
-- Created new Comments component
+- Add comment functionality to blogs and update related tests
+- Implemented POST /:id/comments endpoint to allow authenticated users to add comments to blogs.
+- Updated Blog component to handle comment submissions and display comments.
+- Refactored service functions to use descriptive names for blog operations.
+- Enhanced tests for blog comments, including success and failure scenarios.
+- Updated frontend components and tests to reflect changes in service functions.
 
 ## Known issues
 

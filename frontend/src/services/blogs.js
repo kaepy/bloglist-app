@@ -41,25 +41,32 @@ const request = async (url, options = {}) => {
   return response.json();
 };
 
-export const getAll = () => request(baseUrl);
+export const getAllBlogs = () => request(baseUrl);
 
-export const getById = (id) => request(`${baseUrl}/${id}`);
+export const getBlogById = (id) => request(`${baseUrl}/${id}`);
 
-export const create = (newObject) =>
+export const createBlog = (newObject) =>
   request(baseUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(newObject),
   });
 
-export const update = (id, newObject) =>
+export const updateBlog = (id, newObject) =>
   request(`${baseUrl}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(newObject),
   });
 
-export const remove = (id) =>
+export const commentBlog = (id, comment) =>
+  request(`${baseUrl}/${id}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ comment }),
+  });
+
+export const removeBlog = (id) =>
   request(`${baseUrl}/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(),

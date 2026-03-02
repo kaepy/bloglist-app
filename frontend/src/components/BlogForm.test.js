@@ -17,17 +17,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import BlogForm from "./BlogForm";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
-
+import { createBlog } from "../services/blogs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /** Mock the blog service — must be called before importing the module */
 vi.mock("../services/blogs", () => ({
   default: {
-    create: vi.fn(),
-    getAll: vi.fn(),
+    createBlog: vi.fn(),
   },
-  create: vi.fn(),
-  getAll: vi.fn(),
+  createBlog: vi.fn(),
 }));
 
 /** Mock the useNotification hook */
@@ -38,8 +36,6 @@ vi.mock("../hooks/useNotification", () => ({
     showNotification: mockShowNotification,
   }),
 }));
-
-import { create } from "../services/blogs";
 
 describe("BlogForm component", () => {
   const newBlog = {
@@ -54,7 +50,7 @@ describe("BlogForm component", () => {
 
   test("when form is submitted with valid data, it should call create service with correct data", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    create.mockResolvedValue(createdBlog);
+    createBlog.mockResolvedValue(createdBlog);
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);
@@ -80,8 +76,8 @@ describe("BlogForm component", () => {
     await waitFor(() => {
       // Verify blog service was called with correct data
       // React Query passes mutation context as second arg, so check first arg only
-      expect(create).toHaveBeenCalled();
-      expect(create.mock.calls[0][0]).toEqual({
+      expect(createBlog).toHaveBeenCalled();
+      expect(createBlog.mock.calls[0][0]).toEqual({
         title: newBlog.title,
         author: newBlog.author,
         url: newBlog.url,
@@ -91,7 +87,7 @@ describe("BlogForm component", () => {
 
   test("when form is submitted successfully, it should clear all input fields", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    create.mockResolvedValue(createdBlog);
+    createBlog.mockResolvedValue(createdBlog);
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);
@@ -123,7 +119,7 @@ describe("BlogForm component", () => {
 
   test("when form is submitted successfully, it should show a success notification", async () => {
     const createdBlog = { id: 1, ...newBlog };
-    create.mockResolvedValue(createdBlog);
+    createBlog.mockResolvedValue(createdBlog);
 
     const queryClient = new QueryClient();
     queryClient.setQueryData(["blogs"], []);

@@ -8,6 +8,7 @@
  *   POST   /           - Create a new blog (authenticated)
  *   DELETE /:id        - Delete a blog (authenticated, owner only)
  *   PUT    /:id        - Update a blog (authenticated; only owner can edit content)
+ *   POST   /:id/comments - Add a comment to a blog (authenticated)
  *
  * Authentication is handled by the userExtractor middleware, which
  * verifies the JWT token and attaches the user to the request.
@@ -122,6 +123,11 @@ blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
   response.json(updatedBlog);
 });
 
+/**
+ * POST /:id/comments - Add a comment to a blog.
+ * Requires authentication. Any authenticated user can comment on any blog.
+ * Returns the updated blog with the new comment appended to the comments array.
+ */
 blogsRouter.post("/:id/comments", middleware.userExtractor, async (request, response) => {
   const { comment } = request.body;
   const blog = await Blog.findById(request.params.id);

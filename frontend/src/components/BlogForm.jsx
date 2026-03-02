@@ -14,7 +14,7 @@ import PropTypes from "prop-types";
 
 import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { create } from "../services/blogs";
+import { createBlog } from "../services/blogs";
 
 import { useNotification } from "../hooks/useNotification";
 
@@ -26,7 +26,7 @@ const BlogForm = ({ togglableRef }) => {
   const formRef = useRef();
 
   const newBlogMutation = useMutation({
-    mutationFn: create,
+    mutationFn: createBlog,
     onSuccess: (newBlog) => {
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(["blogs"], blogs.concat(newBlog));

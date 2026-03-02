@@ -13,6 +13,7 @@
  *     ├─ POST /api/blogs - Create blogs (with auth)
  *     ├─ DELETE /api/blogs/:id - Delete blogs (owner + auth checks)
  *     ├─ PUT /api/blogs/:id - Update blogs (likes)
+ *     ├─ POST /api/blogs/:id/comments - Add comments (with auth)
  *     └─ describe "when there is initially one user"
  *         ├─ POST /api/users - Registration success/failure cases
  *         └─ Validation: unique username, min length, password rules
@@ -202,6 +203,88 @@ describe("when there is initially some blogs saved", () => {
       const blogsAtEnd = await helper.blogsInDb();
       const blogAfterMod = blogsAtEnd[0];
       assert.strictEqual(blogAfterMod.likes, modifiedBlog.likes);
+    });
+  });
+
+  describe("adding comments to a blog", () => {
+    test("succeeds with valid data and authentication", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToComment = blogsAtStart[0];
+      const authToken = await helper.testUserToken();
+
+      const comment = { comment: "This is a great blog post!" };
+
+      const response = await api
+        .post(`/api/blogs/${blogToComment.id}/comments`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(comment)
+        .expect(200)
+        .expect("Content-Type", /application\/json/);
+
+      // Verify the response contains the new comment
+      assert.strictEqual(response.body.comments.length, 1);
+      assert(response.body.comments.includes("This is a great blog post!"));
+
+      // Verify the comment was saved to the database
+      const blogsAtEnd = await helper.blogsInDb();
+      const commentedBlog = blogsAtEnd.find((b) => b.id === blogToComment.id);
+      assert.strictEqual(commentedBlog.comments.length, 1);
+      assert(commentedBlog.comments.includes("This is a great blog post!"));
+    });
+
+    test("adds multiple comments to the same blog", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToComment = blogsAtStart[0];
+      const authToken = await helper.testUserToken();
+
+      await api
+        .post(`/api/blogs/${blogToComment.id}/comments`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({ comment: "First comment" })
+        .expect(200);
+
+      await api
+        .post(`/api/blogs/${blogToComment.id}/comments`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({ comment: "Second comment" })
+        .expect(200);
+
+      const blogsAtEnd = await helper.blogsInDb();
+      const commentedBlog = blogsAtEnd.find((b) => b.id === blogToComment.id);
+      assert.strictEqual(commentedBlog.comments.length, 2);
+      assert(commentedBlog.comments.includes("First comment"));
+      assert(commentedBlog.comments.includes("Second comment"));
+    });
+
+    test("fails with statuscode 401 if token is missing", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToComment = blogsAtStart[0];
+
+      const comment = { comment: "Unauthorized comment" };
+
+      await api
+        .post(`/api/blogs/${blogToComment.id}/comments`)
+        .set("Authorization", "Bearer ")
+        .send(comment)
+        .expect(401);
+
+      // Verify the comment was not added
+      const blogsAtEnd = await helper.blogsInDb();
+      const blog = blogsAtEnd.find((b) => b.id === blogToComment.id);
+      assert.strictEqual(blog.comments.length, 0);
+    });
+
+    test("fails with statuscode 404 if blog does not exist", async () => {
+      const nonExistentId = await helper.nonExistingId();
+      const authToken = await helper.testUserToken();
+
+      const comment = { comment: "Comment on non-existent blog" };
+
+      await api
+        .post(`/api/blogs/${nonExistentId}/comments`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(comment)
+        .expect(404);
     });
   });
 

@@ -2,18 +2,19 @@
  * @file blogs.test.js
  * Unit tests for the blog HTTP service layer.
  *
- * Axios is fully mocked so no real HTTP requests are made.
+ * Fetch is fully mocked so no real HTTP requests are made.
  * The storage service is mocked to return a test JWT token.
  *
  * Test coverage:
- * - getAll: fetches from correct URL, handles errors
- * - create: sends POST with auth header, handles missing user
- * - update: sends PUT with auth header, handles errors
- * - remove: sends DELETE with auth header, handles errors
+ * - getAllBlogs: fetches from correct URL, handles errors
+ * - createBlog: sends POST with auth header, handles missing user
+ * - updateBlog: sends PUT with auth header, handles errors
+ * - commentBlog: sends POST to comments endpoint with auth header
+ * - removeBlog: sends DELETE with auth header, handles errors
  */
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { getAll, create, update, remove } from "./blogs";
+import { getAllBlogs, createBlog, updateBlog, commentBlog, removeBlog } from "./blogs";
 import storage from "./storage";
 
 vi.mock("./storage");
@@ -36,7 +37,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve(blogs),
       });
 
-      const result = await getAll();
+      const result = await getAllBlogs();
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs", {});
       expect(result).toEqual(blogs);
@@ -49,7 +50,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve({ error: "Failed to fetch blogs" }),
       });
 
-      await expect(getAll()).rejects.toThrow("Failed to fetch blogs");
+      await expect(getAllBlogs()).rejects.toThrow("Failed to fetch blogs");
     });
   });
 
@@ -66,7 +67,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve(createdBlog),
       });
 
-      const result = await create(newBlog);
+      const result = await createBlog(newBlog);
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs", {
         method: "POST",
@@ -86,7 +87,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve({}),
       });
 
-      await create({ title: "Test" });
+      await createBlog({ title: "Test" });
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs", {
         method: "POST",
@@ -106,7 +107,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve(updatedBlog),
       });
 
-      const result = await update(1, updatedBlog);
+      const result = await updateBlog(1, updatedBlog);
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs/1", {
         method: "PUT",
@@ -126,7 +127,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve({ error: "Failed to update blog" }),
       });
 
-      await expect(update(1, {})).rejects.toThrow("Failed to update blog");
+      await expect(updateBlog(1, {})).rejects.toThrow("Failed to update blog");
     });
   });
 
@@ -137,7 +138,7 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve({}),
       });
 
-      const result = await remove(1);
+      const result = await removeBlog(1);
 
       expect(fetch).toHaveBeenCalledWith("/api/blogs/1", {
         method: "DELETE",
@@ -153,7 +154,63 @@ describe("BLOGS SERVICE", () => {
         json: () => Promise.resolve({ error: "Failed to delete blog" }),
       });
 
-      await expect(remove(1)).rejects.toThrow("Failed to delete blog");
+      await expect(removeBlog(1)).rejects.toThrow("Failed to delete blog");
+    });
+  });
+
+  describe("COMMENT ON BLOGS", () => {
+    test("should add a comment to a blog with authorization header", async () => {
+      const blogWithComment = {
+        id: 1,
+        title: "Test Blog",
+        comments: ["Great post!"],
+      };
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(blogWithComment),
+      });
+
+      const result = await commentBlog(1, "Great post!");
+
+      expect(fetch).toHaveBeenCalledWith("/api/blogs/1/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token123",
+        },
+        body: JSON.stringify({ comment: "Great post!" }),
+      });
+      expect(result).toEqual(blogWithComment);
+    });
+
+    test("should not send Authorization header when user is not logged in", async () => {
+      storage.loadUser.mockReturnValue(null);
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
+
+      await commentBlog(1, "Nice post");
+
+      expect(fetch).toHaveBeenCalledWith("/api/blogs/1/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ comment: "Nice post" }),
+      });
+    });
+
+    test("should propagate error when comment fails", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: "Failed to add comment" }),
+      });
+
+      await expect(commentBlog(1, "Test comment")).rejects.toThrow(
+        "Failed to add comment",
+      );
     });
   });
 });
