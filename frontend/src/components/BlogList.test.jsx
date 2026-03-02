@@ -100,7 +100,7 @@ describe("BlogList", () => {
 
     renderBlogList(queryClient);
 
-    expect(screen.getByText("loading blogs...")).toBeTruthy();
+    expect(screen.getByRole("progressbar")).toBeTruthy();
   });
 
   test("renders all blogs once data is loaded", () => {
@@ -126,9 +126,9 @@ describe("BlogList", () => {
 
     renderBlogList(queryClient);
 
-    // Get all blog title text from the rendered list
-    const blogElements = document.querySelectorAll(".blog");
-    const renderedTitles = Array.from(blogElements).map((el) => el.textContent);
+    // Get all blog list items from the rendered list
+    const listItems = screen.getAllByRole("listitem");
+    const renderedTitles = listItems.map((el) => el.textContent);
 
     // "Second Blog" (10 likes) should appear before "First Blog" (3 likes)
     // and "First Blog" before "Third Blog" (1 like)

@@ -22,6 +22,10 @@ import UserList from "./components/UserList";
 import User from "./components/User";
 import Blog from "./components/Blog";
 
+import { Container, AppBar, Toolbar, IconButton, Button, Typography } from "@mui/material";
+
+import Book from "@mui/icons-material/Book";
+
 const App = () => {
   const { user } = useUser();
   const { handleLogin, handleLogout } = useAuth();
@@ -30,45 +34,48 @@ const App = () => {
   // Unauthenticated view: show only the login form
   if (!user) {
     return (
-      <div>
-        <h2>Blogs</h2>
+      <Container>
+        <Typography variant="h4" component="h2">
+          Login to Bloglist
+        </Typography>
         <Notification />
         <LoginForm handleLogin={handleLogin} />
-      </div>
+      </Container>
     );
   }
 
-  const padding = {
-    padding: 5,
-  };
-
   return (
     <Router>
-      <div>
-        <h2>Blogs</h2>
+      <Container>
+        <AppBar position="static">
+          <Toolbar>
+            <IconButton edge="start" color="inherit" aria-label="menu" component={Link} to="/">
+              <Book />
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Bloglist App
+              </Typography>
+            </IconButton>
+            <Button color="inherit" component={Link} to="/users">
+              Users
+            </Button>
+            <Typography>{user.name} logged in</Typography>
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
+            </Button>
+          </Toolbar>
+        </AppBar>
+
         <Notification />
-        <div style={{ marginBottom: 10, padding: 5, background: "lightgray" }}>
-          <Link style={padding} to="/">
-            Blogs
-          </Link>
-          <Link style={padding} to="/users">
-            Users
-          </Link>
-          {user.name} logged in
-          <button style={{ marginLeft: 5 }} onClick={handleLogout}>
-            logout
-          </button>
-        </div>
 
         <Routes>
           <Route
             path="/"
             element={
               <>
-                <BlogList />
                 <Togglable buttonLabel="New blog" ref={blogFormRef}>
                   <BlogForm togglableRef={blogFormRef} />
                 </Togglable>
+                <BlogList />
               </>
             }
           />
@@ -76,7 +83,7 @@ const App = () => {
           <Route path="/users/:id" element={<User />} />
           <Route path="/blogs/:id" element={<Blog />} />
         </Routes>
-      </div>
+      </Container>
     </Router>
   );
 };

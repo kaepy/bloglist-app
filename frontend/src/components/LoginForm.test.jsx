@@ -24,7 +24,7 @@ describe("LoginForm", () => {
 
     expect(document.querySelector("#username")).toBeTruthy();
     expect(document.querySelector("#password")).toBeTruthy();
-    expect(screen.getByText("Login")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /login/i })).toBeTruthy();
   });
 
   test("calls handleLogin with entered credentials on submit", async () => {
@@ -35,7 +35,7 @@ describe("LoginForm", () => {
 
     await userEvt.type(document.querySelector("#username"), "testuser");
     await userEvt.type(document.querySelector("#password"), "secret");
-    await userEvt.click(screen.getByText("Login"));
+    await userEvt.click(screen.getByRole("button", { name: /login/i }));
 
     expect(handleLogin).toHaveBeenCalledOnce();
     expect(handleLogin).toHaveBeenCalledWith({
@@ -54,7 +54,7 @@ describe("LoginForm", () => {
 
     await userEvt.type(usernameInput, "testuser");
     await userEvt.type(passwordInput, "secret");
-    await userEvt.click(screen.getByText("Login"));
+    await userEvt.click(screen.getByRole("button", { name: /login/i }));
 
     // Fields should be cleared after submit
     expect(usernameInput.value).toBe("");

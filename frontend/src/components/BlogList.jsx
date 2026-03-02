@@ -12,25 +12,36 @@ import BlogListItem from "./BlogListItem";
 import { useQuery } from "@tanstack/react-query";
 import { getAllBlogs } from "../services/blogs";
 
+import { Box, Typography, List, Paper, CircularProgress, Alert } from "@mui/material";
+
 const BlogList = () => {
   const blogs = useQuery({ queryKey: ["blogs"], queryFn: getAllBlogs });
 
   if (blogs.isLoading) {
-    return <div>loading blogs...</div>;
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
+        <CircularProgress />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading blog data...
+        </Typography>
+      </Box>
+    );
   }
 
   if (blogs.isError) {
-    return <div>Error loading blogs. Please try again.</div>;
+    return <Alert severity="error">Error loading blogs. Please try again.</Alert>;
   }
 
   return (
-    <div>
-      {[...blogs.data]
-        .sort((a, b) => b.likes - a.likes)
-        .map((blog) => (
-          <BlogListItem key={blog.id} blog={blog} />
-        ))}
-    </div>
+    <Paper sx={{ mt: 2 }}>
+      <List>
+        {[...blogs.data]
+          .sort((a, b) => b.likes - a.likes)
+          .map((blog) => (
+            <BlogListItem key={blog.id} blog={blog} />
+          ))}
+      </List>
+    </Paper>
   );
 };
 

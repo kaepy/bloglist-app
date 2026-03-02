@@ -16,13 +16,10 @@
 
 import { useState, useImperativeHandle, forwardRef } from "react";
 import PropTypes from "prop-types";
+import { Box, Button, Collapse } from "@mui/material";
 
 const Togglable = forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false);
-
-  // CSS display toggle: when visible, hide the "open" button; show the content
-  const hideWhenVisible = { display: visible ? "none" : "" };
-  const showWhenVisible = { display: visible ? "" : "none" };
 
   const toggleVisibility = () => {
     setVisible(!visible);
@@ -36,15 +33,24 @@ const Togglable = forwardRef((props, ref) => {
   });
 
   return (
-    <div>
-      <div style={hideWhenVisible}>
-        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
-      </div>
-      <div style={showWhenVisible} className="togglableContent">
-        {props.children}
-        <button onClick={toggleVisibility}>cancel</button>
-      </div>
-    </div>
+    <Box sx={{ my: 2 }}>
+      {/* Show "open" button only when content is hidden */}
+      {!visible && (
+        <Button variant="contained" onClick={toggleVisibility}>
+          {props.buttonLabel}
+        </Button>
+      )}
+
+      {/* Animated show/hide of children */}
+      <Collapse in={visible}>
+        <Box className="togglableContent" sx={{ mt: 2 }}>
+          {props.children}
+          <Button variant="outlined" color="secondary" onClick={toggleVisibility} sx={{ mt: 1 }}>
+            Cancel
+          </Button>
+        </Box>
+      </Collapse>
+    </Box>
   );
 });
 

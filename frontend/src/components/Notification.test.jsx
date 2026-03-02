@@ -75,8 +75,9 @@ describe("Notification", () => {
 
     await trigger();
 
-    const notification = screen.getByText("Success message");
-    expect(notification.style.color).toBe("green");
+    // MUI Alert uses CSS classes instead of inline styles for severity coloring
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveClass("MuiAlert-colorSuccess");
   });
 
   test("uses red color for error notifications", async () => {
@@ -84,7 +85,8 @@ describe("Notification", () => {
 
     await trigger();
 
-    const notification = screen.getByText("Error message");
-    expect(notification.style.color).toBe("red");
+    // MUI Alert uses CSS classes instead of inline styles for severity coloring
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveClass("MuiAlert-colorError");
   });
 });

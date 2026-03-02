@@ -1,17 +1,21 @@
 # CHANGE LOGS
 
-## 7.19: kommentit, step2
+## 7.20: tyylit, step1
 
-Laajenna sovellusta siten, että kommentointi onnistuu frontendista käsin
+Tee sovelluksesi ulkoasusta tyylikkäämpi jotain kurssilla esiteltyä tapaa käyttäen
 
 ## Changes
 
-- Add comment functionality to blogs and update related tests
-- Implemented POST /:id/comments endpoint to allow authenticated users to add comments to blogs.
-- Updated Blog component to handle comment submissions and display comments.
-- Refactored service functions to use descriptive names for blog operations.
-- Enhanced tests for blog comments, including success and failure scenarios.
-- Updated frontend components and tests to reflect changes in service functions.
+- Integrate Material-UI components for improved UI consistency
+- Added Material-UI dependencies for styling and components.
+- Refactored App component to use Material-UI's AppBar, Toolbar, and Container for layout.
+- Updated Blog component to utilize Material-UI's Card, Typography, and Button for a more modern look.
+- Enhanced BlogForm with Material-UI's TextField and Button for better input handling.
+- Improved BlogList and BlogListItem to use Material-UI's List and ListItem for better presentation.
+- Updated User and UserList components to use Material-UI's Card and Table for structured data display.
+- Refined Notification component to use Material-UI's Alert for consistent messaging.
+- Adjusted Togglable component to use Material-UI's Collapse for animated visibility.
+- Updated tests to reflect changes in component structure and styling.
 
 ## Known issues
 

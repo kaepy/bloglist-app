@@ -7,39 +7,67 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "../services/users";
 import { Link } from "react-router-dom";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  CircularProgress,
+  Alert,
+  Box,
+  Link as MuiLink,
+} from "@mui/material";
+
 const UserList = () => {
   const users = useQuery({ queryKey: ["users"], queryFn: getAllUsers });
 
   if (users.isLoading) {
-    return <div>loading users...</div>;
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
+        <CircularProgress />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading user data...
+        </Typography>
+      </Box>
+    );
   }
 
   if (users.isError) {
-    return <div>Error loading users. Please try again.</div>;
+    return <Alert severity="error">Error loading users. Please try again.</Alert>;
   }
 
   return (
-    <div>
-      <h2>Users</h2>
-      <table>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>User</th>
-            <th>Blogs Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.data.map((user) => (
-            <tr key={user.id}>
-              <td>
-                <Link to={`/users/${user.id}`}>{user.username}</Link>
-              </td>
-              <td style={{ textAlign: "center" }}>{user.blogs.length}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <Typography variant="h4" component="h1" sx={{ my: 2 }}>
+        Users
+      </Typography>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell align="right">Blogs Created</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.data.map((user) => (
+              <TableRow key={user.id} hover>
+                <TableCell>
+                  <MuiLink component={Link} to={`/users/${user.id}`}>
+                    {user.username}
+                  </MuiLink>
+                </TableCell>
+                <TableCell align="right">{user.blogs.length}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 

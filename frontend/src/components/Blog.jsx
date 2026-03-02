@@ -20,6 +20,26 @@ import { getBlogById, updateBlog, commentBlog, removeBlog } from "../services/bl
 import { useNotification } from "../hooks/useNotification";
 import { useUser } from "../hooks/useUser";
 
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Typography,
+  Button,
+  IconButton,
+  TextField,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Box,
+  CircularProgress,
+  Alert,
+  Link as MuiLink,
+} from "@mui/material";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 const Blog = () => {
   const { id } = useParams();
   const { data: blog, isLoading, isError } = useQuery({ queryKey: ["blog", id], queryFn: () => getBlogById(id) });
@@ -33,13 +53,15 @@ const Blog = () => {
   const voteBlogMutation = useMutation({
     mutationFn: ({ id, updatedBlog }) => updateBlog(id, updatedBlog),
     onSuccess: (updatedBlog) => {
-      // keep the list cache in sync (so sort order is correct when navigating back)
+      // Keep the list cache in sync (so sort order is correct when navigating back)
       const blogs = queryClient.getQueryData(["blogs"]);
-      queryClient.setQueryData(
-        ["blogs"],
-        blogs.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)),
-      );
-      // update the detail page cache (so the count updates immediately)
+      if (blogs) {
+        queryClient.setQueryData(
+          ["blogs"],
+          blogs.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)),
+        );
+      }
+      // Update the detail page cache (so the count updates immediately)
       queryClient.setQueryData(["blog", id], updatedBlog);
       showNotification(`New like added to blog "${updatedBlog.title}"!`, 5, "success");
     },
@@ -52,10 +74,12 @@ const Blog = () => {
     mutationFn: (id) => removeBlog(id),
     onSuccess: (_, blogId) => {
       const blogs = queryClient.getQueryData(["blogs"]);
-      queryClient.setQueryData(
-        ["blogs"],
-        blogs.filter((b) => b.id !== blogId),
-      );
+      if (blogs) {
+        queryClient.setQueryData(
+          ["blogs"],
+          blogs.filter((b) => b.id !== blogId),
+        );
+      }
       navigate("/");
       showNotification(`Blog "${blog.title}" removed!`, 5, "success");
     },
@@ -78,12 +102,11 @@ const Blog = () => {
 
   const formRef = useRef();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Blog not found.</div>;
+  if (isLoading) return <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />;
+  if (isError) return <Alert severity="error">Blog not found.</Alert>;
 
   const updateLikes = (event) => {
     event.preventDefault();
-
     voteBlogMutation.mutate({
       id: blog.id,
       updatedBlog: {
@@ -95,7 +118,6 @@ const Blog = () => {
 
   const deleteBlog = (event) => {
     event.preventDefault();
-
     if (window.confirm(`Are you sure you want to remove ${blog.title}?`)) {
       deleteBlogMutation.mutate(blog.id);
     }
@@ -107,44 +129,72 @@ const Blog = () => {
     newCommentMutation.mutate(comment);
   };
 
+  const isOwner = blog.user && user.username === blog.user.username;
+
   return (
-    <div>
-      <h2>{blog.title}</h2>
-      <div>Author: {blog.author}</div>
-      <div>
-        Url: <a href={blog.url}>{blog.url}</a>
-      </div>
-      <div>
-        {blog.likes} Likes{" "}
-        <button id="like-button" onClick={updateLikes}>
-          like
-        </button>
-      </div>
-      <div>
-        Added by <Link to={`/users/${blog.user.id}`}>{blog.user.username}</Link>
-      </div>
-      <div>
-        {blog.user && user.username === blog.user.username && (
-          <button id="remove-button" onClick={deleteBlog}>
-            remove
-          </button>
+    <Card sx={{ mt: 2 }}>
+      <CardContent>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {blog.title}
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          by {blog.author}
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 1 }}>
+          <MuiLink href={blog.url} target="_blank" rel="noopener noreferrer">
+            {blog.url}
+          </MuiLink>
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Added by{" "}
+          <MuiLink component={Link} to={`/users/${blog.user.id}`}>
+            {blog.user.username}
+          </MuiLink>
+        </Typography>
+      </CardContent>
+
+      <CardActions>
+        <Button startIcon={<ThumbUpIcon />} onClick={updateLikes} id="like-button">
+          Like ({blog.likes})
+        </Button>
+
+        {isOwner && (
+          <>
+            <Box sx={{ flexGrow: 1 }} />
+            <IconButton color="error" onClick={deleteBlog} id="remove-button" aria-label="delete blog">
+              <DeleteIcon />
+            </IconButton>
+          </>
         )}
-      </div>
-      <div>
-        <h2>Comments</h2>
-        <form onSubmit={addComment} ref={formRef}>
-          <input id="comment" placeholder="Add a comment..." />
-          <button id="add-comment-button" type="submit">
-            Add comment
-          </button>
-        </form>
-        <ul>
-          {blog.comments?.length > 0
-            ? blog.comments.map((comment, index) => <li key={index}>{comment}</li>)
-            : "No comments yet."}
-        </ul>
-      </div>
-    </div>
+      </CardActions>
+
+      <Divider />
+
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          Comments
+        </Typography>
+        <Box component="form" onSubmit={addComment} ref={formRef} sx={{ display: "flex", gap: 1, mb: 2 }}>
+          <TextField name="comment" id="comment" placeholder="Add a comment..." size="small" fullWidth />
+          <Button type="submit" variant="contained" id="add-comment-button">
+            Add
+          </Button>
+        </Box>
+        {blog.comments?.length > 0 ? (
+          <List dense>
+            {blog.comments.map((comment, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={comment} />
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No comments yet.
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

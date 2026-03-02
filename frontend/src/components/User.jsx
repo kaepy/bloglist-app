@@ -10,6 +10,21 @@ import { useParams } from "react-router-dom";
 import { getUserById } from "../services/users";
 import { Link } from "react-router-dom";
 
+import {
+  Card,
+  CardContent,
+  Typography,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  CircularProgress,
+  Alert,
+  Divider,
+  Box,
+  Chip,
+} from "@mui/material";
+
 const User = () => {
   const { id } = useParams();
 
@@ -23,21 +38,51 @@ const User = () => {
     queryFn: () => getUserById(id),
   });
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>User not found.</div>;
+  if (isLoading)
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
+        <CircularProgress />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading user data...
+        </Typography>
+      </Box>
+    );
+  if (isError) return <Alert severity="error">User not found.</Alert>;
 
   return (
-    <div>
-      <h2>{user.username}</h2>
-      <h3>Added blogs</h3>
-      <ul>
-        {user.blogs.map((blog) => (
-          <li key={blog.id}>
-            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Card sx={{ mt: 2 }}>
+      <CardContent>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Blogs added by{" "}
+          <Box component="span" sx={{ color: "primary.main", fontWeight: "bold" }}>
+            {user.username}
+          </Box>
+        </Typography>
+      </CardContent>
+
+      <Divider />
+
+      {user.blogs.length > 0 ? (
+        <List sx={{ listStyleType: "disc", pl: 4 }}>
+          {user.blogs.map((blog) => (
+            <ListItem key={blog.id} disablePadding sx={{ display: "list-item" }}>
+              <ListItemButton component={Link} to={`/blogs/${blog.id}`}>
+                <ListItemText primary={blog.title} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Chip label={blog.likes} size="small" variant="outlined" />
+                </Box>
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <CardContent>
+          <Typography variant="body2" color="text.secondary">
+            No blogs added yet.
+          </Typography>
+        </CardContent>
+      )}
+    </Card>
   );
 };
 

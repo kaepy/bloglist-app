@@ -72,7 +72,7 @@ describe("User", () => {
 
     renderUser(queryClient);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
   test("when the query fails, it should show an error message", async () => {
@@ -99,7 +99,8 @@ describe("User", () => {
     renderUser(queryClient);
 
     expect(screen.getByText("testuser")).toBeInTheDocument();
-    expect(screen.getByText("Added blogs")).toBeInTheDocument();
+    // The heading now says "Blogs added by testuser"
+    expect(screen.getByText(/Blogs added by/i)).toBeInTheDocument();
   });
 
   test("when data is loaded, it should render all of the user's blogs", () => {

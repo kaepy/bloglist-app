@@ -33,9 +33,9 @@ describe("Togglable", () => {
     // The "Show form" button should be visible
     expect(screen.getByText("Show form")).toBeTruthy();
 
-    // The content and cancel button are in the DOM but hidden via display:none
-    const contentWrapper = document.querySelector(".togglableContent");
-    expect(contentWrapper.style.display).toBe("none");
+    // The content is hidden via MUI Collapse (height: 0px when collapsed)
+    const collapse = document.querySelector(".MuiCollapse-root");
+    expect(collapse).toHaveStyle({ height: "0px" });
   });
 
   test("shows content and cancel button when toggle button is clicked", async () => {
@@ -49,13 +49,9 @@ describe("Togglable", () => {
 
     await userEvt.click(screen.getByText("Show form"));
 
-    // Content wrapper should now be visible
-    const contentWrapper = document.querySelector(".togglableContent");
-    expect(contentWrapper.style.display).toBe("");
-
     // Content and cancel button are visible
     expect(screen.getByText("Hidden content")).toBeTruthy();
-    expect(screen.getByText("cancel")).toBeTruthy();
+    expect(screen.getByText("Cancel")).toBeTruthy();
   });
 
   test("hides content when cancel button is clicked", async () => {
@@ -69,11 +65,13 @@ describe("Togglable", () => {
 
     // Open it first
     await userEvt.click(screen.getByText("Show form"));
-    expect(document.querySelector(".togglableContent").style.display).toBe("");
+    expect(screen.getByText("Hidden content")).toBeTruthy();
 
     // Then close with cancel
-    await userEvt.click(screen.getByText("cancel"));
-    expect(document.querySelector(".togglableContent").style.display).toBe("none");
+    await userEvt.click(screen.getByText("Cancel"));
+
+    // After closing, the toggle button reappears
+    expect(screen.getByText("Show form")).toBeTruthy();
   });
 
   test("toggleVisibility ref method toggles visibility programmatically", async () => {
@@ -85,15 +83,16 @@ describe("Togglable", () => {
       </Togglable>,
     );
 
-    // Initially hidden
-    expect(document.querySelector(".togglableContent").style.display).toBe("none");
+    // Initially hidden — toggle button visible
+    expect(screen.getByText("Show form")).toBeTruthy();
 
     // Toggle open via ref — wrapped in act() because it triggers a React state update
     act(() => togglableRef.current.toggleVisibility());
-    expect(document.querySelector(".togglableContent").style.display).toBe("");
+    expect(screen.getByText("Ref-toggled content")).toBeTruthy();
+    expect(screen.getByText("Cancel")).toBeTruthy();
 
     // Toggle closed via ref
     act(() => togglableRef.current.toggleVisibility());
-    expect(document.querySelector(".togglableContent").style.display).toBe("none");
+    expect(screen.getByText("Show form")).toBeTruthy();
   });
 });

@@ -9,29 +9,18 @@
  */
 
 import { useNotification } from "../hooks/useNotification";
+import { Alert } from "@mui/material";
 
 const Notification = () => {
   const { notification } = useNotification();
 
   if (!notification) return null;
 
-  const baseStyle = {
-    fontWeight: "bold",
-    fontSize: 16,
-    borderStyle: "solid",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    background: "lightgrey",
-  };
-
-  // Dynamic style: merge base styles with type-specific color
-  const style = {
-    ...baseStyle,
-    color: notification.type === "error" ? "red" : "green",
-  };
-
-  return <div style={style}>{notification.message}</div>;
+  return (
+    <div>
+      <Alert severity={notification.type}>{notification.message}</Alert>
+    </div>
+  );
 };
 
 export default Notification;

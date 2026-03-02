@@ -29,7 +29,8 @@ describe("BlogListItem", () => {
       </MemoryRouter>,
     );
 
-    const link = screen.getByRole("link", { name: "Testing Blog Component" });
+    // MUI ListItemText includes primary (title) and secondary (author) text in the link
+    const link = screen.getByRole("link", { name: /Testing Blog Component/i });
     expect(link).toBeDefined();
     // Verifies the href points to the correct detail route
     expect(link.getAttribute("href")).toBe("/blogs/123");

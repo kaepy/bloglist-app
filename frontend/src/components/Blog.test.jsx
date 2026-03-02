@@ -109,9 +109,9 @@ describe("Blog Detail Page", () => {
     // useQuery is async — wait for the loading state to clear
     await waitFor(() => screen.getByText("Testing Blog Detail"));
 
-    expect(screen.getByText("Author: Test Author")).toBeDefined();
+    expect(screen.getByText(/by Test Author/i)).toBeDefined();
     expect(screen.getByText("http://test.com")).toBeDefined();
-    expect(screen.getByText("5 Likes", { exact: false })).toBeDefined();
+    expect(screen.getByText(/Like \(5\)/i)).toBeDefined();
   });
 
   test("clicking like calls update with incremented like count", async () => {
@@ -142,8 +142,8 @@ describe("Blog Detail Page", () => {
   test("remove button is visible to the blog owner", async () => {
     renderBlog("testuser");
 
-    await waitFor(() => screen.getByRole("button", { name: /remove/i }));
-    expect(screen.getByRole("button", { name: /remove/i })).toBeDefined();
+    await waitFor(() => screen.getByRole("button", { name: /delete blog/i }));
+    expect(screen.getByRole("button", { name: /delete blog/i })).toBeDefined();
   });
 
   test("remove button is NOT visible to a different user", async () => {
@@ -151,7 +151,7 @@ describe("Blog Detail Page", () => {
 
     // Wait for the page to finish loading before asserting absence
     await waitFor(() => screen.getByText("Testing Blog Detail"));
-    expect(screen.queryByRole("button", { name: /remove/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /delete blog/i })).toBeNull();
   });
 
   test("clicking remove confirms and calls remove service with blog id", async () => {
@@ -161,8 +161,8 @@ describe("Blog Detail Page", () => {
     renderBlog("testuser");
     const userEvt = userEvent.setup();
 
-    await waitFor(() => screen.getByRole("button", { name: /remove/i }));
-    await userEvt.click(screen.getByRole("button", { name: /remove/i }));
+    await waitFor(() => screen.getByRole("button", { name: /delete blog/i }));
+    await userEvt.click(screen.getByRole("button", { name: /delete blog/i }));
 
     expect(window.confirm).toHaveBeenCalled();
     expect(removeBlog).toHaveBeenCalledWith("123");
@@ -204,7 +204,7 @@ describe("Blog Detail Page", () => {
     await waitFor(() => screen.getByPlaceholderText("Add a comment..."));
 
     const input = screen.getByPlaceholderText("Add a comment...");
-    const submitButton = screen.getByRole("button", { name: /add comment/i });
+    const submitButton = screen.getByRole("button", { name: /^add$/i });
 
     await userEvt.type(input, "This is a new comment");
     await userEvt.click(submitButton);
@@ -225,7 +225,7 @@ describe("Blog Detail Page", () => {
     await waitFor(() => screen.getByPlaceholderText("Add a comment..."));
 
     const input = screen.getByPlaceholderText("Add a comment...");
-    const submitButton = screen.getByRole("button", { name: /add comment/i });
+    const submitButton = screen.getByRole("button", { name: /^add$/i });
 
     await userEvt.type(input, "Test comment");
     await userEvt.click(submitButton);

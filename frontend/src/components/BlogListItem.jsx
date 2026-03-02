@@ -16,22 +16,19 @@
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
-const BlogListItem = ({ blog }) => {
-  // Inline styles for blog card layout
-  const blogStyle = {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 2,
-    border: "solid",
-    borderWidth: 1,
-    marginBottom: 5,
-    listStyleType: "none",
-  };
+import { ListItem, ListItemButton, ListItemText, Chip, Box } from "@mui/material";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 
+const BlogListItem = ({ blog }) => {
   return (
-    <div className="blog" style={blogStyle}>
-      <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
-    </div>
+    <ListItem disablePadding>
+      <ListItemButton component={Link} to={`/blogs/${blog.id}`}>
+        <ListItemText primary={blog.title} secondary={`by ${blog.author}`} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Chip label={blog.likes} size="small" variant="outlined" />
+        </Box>
+      </ListItemButton>
+    </ListItem>
   );
 };
 
@@ -40,12 +37,7 @@ BlogListItem.propTypes = {
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     author: PropTypes.string.isRequired,
-    url: PropTypes.string.isRequired,
     likes: PropTypes.number.isRequired,
-    user: PropTypes.shape({
-      username: PropTypes.string.isRequired,
-      id: PropTypes.string.isRequired,
-    }),
   }).isRequired,
 };
 

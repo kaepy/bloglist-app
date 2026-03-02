@@ -66,7 +66,7 @@ describe("BlogForm component", () => {
     const title = screen.getByPlaceholderText("placeholder title");
     const author = screen.getByPlaceholderText("placeholder author");
     const url = screen.getByPlaceholderText("placeholder url");
-    const createButton = screen.getByText("create");
+    const createButton = screen.getByText("Create");
 
     await user.type(title, newBlog.title);
     await user.type(author, newBlog.author);
@@ -103,7 +103,7 @@ describe("BlogForm component", () => {
     const title = screen.getByPlaceholderText("placeholder title");
     const author = screen.getByPlaceholderText("placeholder author");
     const url = screen.getByPlaceholderText("placeholder url");
-    const createButton = screen.getByText("create");
+    const createButton = screen.getByText("Create");
 
     await user.type(title, newBlog.title);
     await user.type(author, newBlog.author);
@@ -135,7 +135,7 @@ describe("BlogForm component", () => {
     const title = screen.getByPlaceholderText("placeholder title");
     const author = screen.getByPlaceholderText("placeholder author");
     const url = screen.getByPlaceholderText("placeholder url");
-    const createButton = screen.getByText("create");
+    const createButton = screen.getByText("Create");
 
     await user.type(title, newBlog.title);
     await user.type(author, newBlog.author);

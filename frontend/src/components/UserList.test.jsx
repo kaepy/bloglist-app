@@ -78,7 +78,7 @@ describe("UserList", () => {
 
     renderUserList(queryClient);
 
-    expect(screen.getByText("loading users...")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
   test("when data is loaded, it should render all usernames", () => {

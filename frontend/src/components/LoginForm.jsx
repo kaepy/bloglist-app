@@ -9,6 +9,7 @@
 
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { TextField, Button, Box, Typography } from "@mui/material";
 
 const LoginForm = ({ handleLogin }) => {
   const [username, setUsername] = useState("");
@@ -23,34 +24,37 @@ const LoginForm = ({ handleLogin }) => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleAuth}>
-        <div>
-          Username:
-          <input
-            type="text"
-            id="username"
-            value={username}
-            name="Username"
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </div>
-        <div>
-          Password:
-          <input
-            type="password"
-            id="password"
-            value={password}
-            name="Password"
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </div>
-        <button id="login-button" type="submit">
+    <Box>
+      <Box
+        component="form"
+        onSubmit={handleAuth}
+        sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 300 }}
+      >
+        <TextField
+          label="Username"
+          type="text"
+          id="username"
+          name="username"
+          value={username}
+          onChange={({ target }) => setUsername(target.value)}
+          size="small"
+          fullWidth
+        />
+        <TextField
+          label="Password"
+          type="password"
+          id="password"
+          name="password"
+          value={password}
+          onChange={({ target }) => setPassword(target.value)}
+          size="small"
+          fullWidth
+        />
+        <Button id="login-button" type="submit" variant="contained" color="primary">
           Login
-        </button>
-      </form>
-      <br />
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
