@@ -48,9 +48,10 @@ blogsRouter.post("/", middleware.userExtractor, async (request, response) => {
     title: body.title,
     author: body.author,
     url: body.url,
-    likes: body.likes,
+    // likes and comments are intentionally NOT taken from the request body:
+    // - likes start at 0 (default) — prevents artificially inflated counts
+    // - comments start empty — use POST /:id/comments to add comments
     user: user._id,
-    comments: body.comments || [],
   });
 
   // Save blog and populate user info for the response
@@ -136,15 +137,27 @@ blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
  */
 blogsRouter.post("/:id/comments", middleware.userExtractor, async (request, response) => {
   const { comment } = request.body;
+
+  // Validate comment presence and type before touching the database
+  if (!comment || typeof comment !== "string" || comment.trim().length === 0) {
+    return response.status(400).json({ error: "comment is required and must be a non-empty string" });
+  }
+
   const blog = await Blog.findById(request.params.id);
 
   if (!blog) {
     return response.status(404).json({ error: "blog not found" });
   }
 
-  blog.comments = blog.comments.concat(comment);
-  const updatedBlog = await blog.save();
-  await updatedBlog.populate("user", { username: 1, name: 1 });
+  // Use $push with findByIdAndUpdate instead of .save() so that Mongoose only
+  // validates the new comment value — not the entire document.
+  // Calling .save() on a document with a legacy URL (pre-validation data) would
+  // re-run all validators including the url http/https check and fail.
+  const updatedBlog = await Blog.findByIdAndUpdate(
+    request.params.id,
+    { $push: { comments: comment.trim() } },
+    { new: true, runValidators: true },
+  ).populate("user", { username: 1, name: 1 });
 
   response.json(updatedBlog);
 });

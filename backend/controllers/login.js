@@ -8,15 +8,32 @@
  *
  * Token payload: { username, id }
  * Token lifetime: 1 hour (3600 seconds)
+ *
+ * Rate limiting: max 20 login attempts per 15 minutes per IP to slow
+ * down brute-force and credential-stuffing attacks.
  */
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { rateLimit } = require("express-rate-limit");
 const loginRouter = require("express").Router();
 const User = require("../models/user");
 const config = require("../utils/config");
 
-loginRouter.post("/", async (request, response) => {
+/**
+ * Limits login attempts to 5 per 15 minutes per IP address.
+ * The vague error message avoids revealing whether the limit is
+ * per-username or per-IP (information disclosure prevention).
+ */
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login attempts per `window` (here, per 15 minutes)
+  message: { error: "Too many login attempts. Please try again later." },
+  standardHeaders: true, // Return rate limit info in RateLimit-* headers
+  legacyHeaders: false, // Disable deprecated X-RateLimit-* headers
+});
+
+loginRouter.post("/", loginLimiter, async (request, response) => {
   const { username, password } = request.body;
 
   // Look up user by username; returns null if not found

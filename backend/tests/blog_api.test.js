@@ -68,7 +68,7 @@ describe("when there is initially some blogs saved", () => {
       const newBlog = {
         title: "Test is test na naaa naa na na",
         author: "Person999",
-        url: "url999",
+        url: "https://test999.example.com",
         likes: 999,
       };
 
@@ -86,7 +86,9 @@ describe("when there is initially some blogs saved", () => {
       assert.strictEqual(response.body.title, newBlog.title);
       assert.strictEqual(response.body.author, newBlog.author);
       assert.strictEqual(response.body.url, newBlog.url);
-      assert.strictEqual(response.body.likes, newBlog.likes);
+      // likes sent in the body are intentionally ignored — blogs always start
+      // at 0 to prevent artificially inflated counts at creation time
+      assert.strictEqual(response.body.likes, 0);
 
       // Verify total blog count increased by one
       const blogsAtEnd = await helper.blogsInDb();
@@ -104,7 +106,7 @@ describe("when there is initially some blogs saved", () => {
       const newBlog = {
         title: "Test zero",
         author: "Person999",
-        url: "url999",
+        url: "https://zero.example.com",
         // likes intentionally omitted to test default behavior
       };
 
@@ -462,7 +464,8 @@ describe("when there is initially some blogs saved", () => {
       const newUser = {
         username: "testUser",
         name: "Test User",
-        password: "sa",
+        // 7 chars — above the old limit of 3 but below the new minimum of 8
+        password: "short77",
       };
 
       const result = await api
@@ -473,7 +476,7 @@ describe("when there is initially some blogs saved", () => {
 
       assert(
         result.body.error.includes(
-          "password is shorter than the minimum allowed length (3).",
+          "password is shorter than the minimum allowed length (8).",
         ),
       );
 

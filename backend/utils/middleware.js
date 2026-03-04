@@ -16,14 +16,14 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
 /**
- * Logs the HTTP method, path, and body of every incoming request.
- * Useful for debugging during development; consider disabling
- * or reducing verbosity for production.
+ * Logs the HTTP method and path of every incoming request.
+ * IMPORTANT: We intentionally do NOT log request bodies here because
+ * POST /api/login sends plain-text passwords in the body. Logging
+ * bodies globally would write credentials to log files in plain text.
  */
 const requestLogger = (request, response, next) => {
   logger.info("Method:", request.method);
   logger.info("Path:  ", request.path);
-  logger.info("Body:  ", request.body);
   logger.info("---");
   next();
 };

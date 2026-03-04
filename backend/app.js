@@ -17,6 +17,7 @@ const express = require("express");
 const path = require("path");
 const app = express();
 const cors = require("cors");
+const helmet = require("helmet");
 const mongoose = require("mongoose");
 
 const config = require("./utils/config");
@@ -43,7 +44,21 @@ mongoose
   });
 
 // --- Global Middleware (order matters!) ---
-app.use(cors());                              // Enable CORS for all origins
+// Helmet sets secure HTTP response headers (CSP, X-Frame-Options, HSTS, etc.).
+// Must be first so it covers every response, including error responses.
+app.use(helmet());
+
+// Restrict CORS to known safe origins.
+// In development the Vite dev server (port 5173) and backend (port 3003) run
+// on different ports = different origins, so CORS is required.
+// In production both are served by this same Express process = same origin,
+// so CORS headers are never sent for production traffic and this list is unused.
+const allowedOrigins = [
+  "http://localhost:5173",  // Vite dev server
+  "http://localhost:3003",  // backend dev port
+].filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.static("../frontend/dist"));  // Serve the frontend production build
 app.use(express.json());                      // Parse JSON request bodies
 app.use(middleware.requestLogger);            // Log every request (dev convenience)

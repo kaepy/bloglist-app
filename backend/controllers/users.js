@@ -40,8 +40,8 @@ usersRouter.post("/", async (request, response) => {
   // cannot see the plain-text password, only the hash)
   if (!password) {
     return response.status(400).json({ error: "password missing." });
-  } else if (password.length < 3) {
-    return response.status(400).json({ error: "password is shorter than the minimum allowed length (3)." });
+  } else if (password.length < 8) {
+    return response.status(400).json({ error: "password is shorter than the minimum allowed length (8)." });
   }
 
   const saltRounds = 10;

@@ -5,7 +5,7 @@
  *
  * Each blog title links to its detail page (/blogs/:id).
  */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getUserById } from "../services/users";
 import { Link } from "react-router-dom";
@@ -28,8 +28,13 @@ import {
 
 const User = () => {
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
   // useQuery returns { data, isLoading, isError, ... } — not the data directly
+  // placeholderData: if UserList has already fetched ["users"], find the matching
+  // user in that cache so this page renders instantly instead of showing a spinner.
+  // isPlaceholderData will be true until the real getUserById fetch completes.
+  // On hard refresh, ["users"] is empty too — spinner shows normally in that case.
   const {
     data: user,
     isLoading,
@@ -37,6 +42,10 @@ const User = () => {
   } = useQuery({
     queryKey: ["user", id],
     queryFn: () => getUserById(id),
+    placeholderData: () => {
+      const users = queryClient.getQueryData(["users"]);
+      return users?.find((u) => u.id === id);
+    },
   });
 
   if (isLoading) return <LoadingSpinner message="Loading user data..." />;

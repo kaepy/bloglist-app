@@ -132,6 +132,22 @@ const Blog = () => {
 
   const isOwner = blog.user && user.username === blog.user.username;
 
+  /**
+   * Only render the blog URL as a clickable link if it starts with http:// or
+   * https://. This prevents javascript: and data: URI injection — if someone
+   * managed to store such a URL (e.g. by bypassing the backend), clicking it
+   * would otherwise execute arbitrary code in the user's browser.
+   * The backend already validates this, but defence-in-depth is cheap.
+   */
+  const safeUrl = (() => {
+    try {
+      const parsed = new URL(blog.url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:" ? blog.url : null;
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <Card sx={{ mt: 2 }}>
       <CardContent>
@@ -142,9 +158,14 @@ const Blog = () => {
           by {blog.author}
         </Typography>
         <Typography variant="body1" sx={{ mb: 1 }}>
-          <MuiLink href={blog.url} target="_blank" rel="noopener noreferrer">
-            {blog.url}
-          </MuiLink>
+          {safeUrl ? (
+            <MuiLink href={safeUrl} target="_blank" rel="noopener noreferrer">
+              {blog.url}
+            </MuiLink>
+          ) : (
+            // Render as plain text if the URL is not a safe http/https link
+            <span>{blog.url}</span>
+          )}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Added by{" "}

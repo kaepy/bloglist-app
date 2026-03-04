@@ -12,7 +12,7 @@
  *   automatically. Components don't need to trigger this — it's self-contained.
  */
 
-import { createContext, useReducer, useCallback, useEffect } from "react";
+import { createContext, useReducer, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import loginService from "../services/login";
 import storage from "../services/storage";
@@ -32,16 +32,11 @@ const UserReducer = (state, action) => {
 const UserContext = createContext();
 
 export const UserContextProvider = ({ children }) => {
-  const [user, userDispatch] = useReducer(UserReducer, null);
+  // Initialize directly from localStorage — it's synchronous, so the first
+  // render already has the correct user. A useEffect would cause a null→user
+  // transition after mount, making the login screen flash on every refresh.
+  const [user, userDispatch] = useReducer(UserReducer, null, () => storage.loadUser());
 
-  // --- Session initialization (on mount — restore saved session from localStorage) ---
-  // Runs once when the provider mounts. No component needs to trigger this.
-  useEffect(() => {
-    const savedUser = storage.loadUser();
-    if (savedUser) {
-      userDispatch({ type: "SET_USER", payload: savedUser });
-    }
-  }, []);
 
   // --- Login (async — uses React Query mutation) ---
   // mutationFn: the function that makes the API call

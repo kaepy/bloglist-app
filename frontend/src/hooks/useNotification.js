@@ -5,11 +5,11 @@
  * harder to debug than loud ones.
  */
 
-import { useContext } from "react";
+import { use } from "react";
 import NotificationContext from "../contexts/NotificationContext";
 
 export const useNotification = () => {
-  const context = useContext(NotificationContext);
+  const context = use(NotificationContext);
 
   if (!context) {
     throw new Error("useNotification must be used within NotificationContextProvider");

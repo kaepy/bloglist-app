@@ -21,7 +21,7 @@ const initialBlogs = [
   {
     title: "The Lord of the Blogs",
     author: "J. R. R. Token",
-    url: "loordi url",
+    url: "https://loordi.example.com",
     likes: 42,
     user: "647451ea7a78ae6fc9786135",
     _id: "6474f3b7e2ab2e8719835602",
@@ -30,7 +30,7 @@ const initialBlogs = [
   {
     title: "The Lego Lasse",
     author: "J. R. R. Token",
-    url: "loordi url",
+    url: "https://lego.example.com",
     likes: 42,
     user: "647451ea7a78ae6fc9786135",
     _id: "6474f4a8e2ab2e8719835612",
@@ -57,9 +57,14 @@ const initialUsers = [
 /**
  * Generate a valid-format MongoDB ObjectId that doesn't exist in the DB.
  * Creates a temporary document, immediately deletes it, and returns the ID.
+ * The document must satisfy schema validations (title required, url http/https)
+ * otherwise save() throws before we can capture the _id.
  */
 const nonExistingId = async () => {
-  const blog = new Blog({ content: "willremovethissoon" });
+  const blog = new Blog({
+    title: "temp blog to get an id",
+    url: "https://temp.example.com",
+  });
   await blog.save();
   await blog.deleteOne();
 
