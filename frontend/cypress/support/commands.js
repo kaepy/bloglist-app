@@ -40,12 +40,12 @@
  */
 
 Cypress.Commands.add("login", ({ username, password }) => {
-  cy.request("POST", "http://localhost:3001/api/login", {
+  cy.request("POST", `${Cypress.env("BACKEND")}/login`, {
     username,
     password,
   }).then(({ body }) => {
     localStorage.setItem("blogUserKey", JSON.stringify(body));
-    cy.visit("http://localhost:5173");
+    cy.visit("/");
   });
 });
 
@@ -57,7 +57,7 @@ Cypress.Commands.add("logout", () => {
 /** Create a blog via the API using the stored JWT (bypasses UI form) */
 Cypress.Commands.add("createBlog", ({ title, author, url }) => {
   cy.request({
-    url: "http://localhost:3001/api/blogs",
+    url: `${Cypress.env("BACKEND")}/blogs`,
     method: "POST",
     body: { title, author, url },
     headers: {
@@ -65,5 +65,5 @@ Cypress.Commands.add("createBlog", ({ title, author, url }) => {
     },
   });
 
-  cy.visit("http://localhost:5173");
+  cy.visit("/");
 });

@@ -2,9 +2,10 @@
  * @file blog_app.cy.js
  * Cypress end-to-end tests for the Blog application.
  *
- * These tests run against a real frontend (localhost:5173) and backend
- * (localhost:3001). Before each test, the database is reset via the
- * /api/testing/reset endpoint and two fresh users are created.
+ * These tests run against a real frontend (baseUrl from cypress.config.js)
+ * and backend (BACKEND env from cypress.config.js). Before each test,
+ * the database is reset via the /api/testing/reset endpoint and two fresh
+ * users are created.
  *
  * Test structure:
  *   - Login form visibility
@@ -13,6 +14,7 @@
  *   - Comments (add comments, display comments)
  *   - Authorization (only creator sees remove button)
  *   - Sorting by likes
+ *   - Navigation (nav links, users list, user detail pages)
  */
 
 describe("Blog app", function () {
@@ -35,7 +37,7 @@ describe("Blog app", function () {
     cy.request("POST", `${Cypress.env("BACKEND")}/users`, user1);
     cy.request("POST", `${Cypress.env("BACKEND")}/users`, user2);
 
-    cy.visit("http://localhost:5173");
+    cy.visit("/");
   });
 
   it("Login form is shown", function () {
@@ -96,7 +98,7 @@ describe("Blog app", function () {
     });
 
     it("Logging out returns to the login form", function () {
-      cy.contains("logout").click();
+      cy.contains("Logout").click();
 
       // After logout the authenticated Router is torn down; login form should appear
       cy.get("#login-button");
@@ -109,7 +111,7 @@ describe("Blog app", function () {
       cy.contains("yet title");
       cy.contains("yet author");
       cy.contains("yet url");
-      cy.contains("0 Likes");
+      cy.contains("Like (0)");
       // "Added by" link to the creator's user page should be present
       cy.contains("himmeli");
     });
@@ -122,7 +124,7 @@ describe("Blog app", function () {
 
       // Should land on the user detail page showing the username and their blogs
       cy.contains("himmeli");
-      cy.contains("Added blogs");
+      cy.contains("Blogs added by");
       cy.contains("yet title");
     });
 
@@ -130,11 +132,11 @@ describe("Blog app", function () {
       // Navigate to the detail page, then interact with the like button there
       cy.contains("another title").click();
 
-      cy.contains("0 Likes");
+      cy.contains("Like (0)");
       cy.get("#like-button").click();
 
       cy.contains('New like added to blog "another title"!');
-      cy.contains("1 Likes");
+      cy.contains("Like (1)");
     });
 
     it("A blog can be removed", function () {
@@ -209,7 +211,7 @@ describe("Blog app", function () {
       cy.contains("another title").click();
       for (let i = 0; i < 5; i++) {
         cy.get("#like-button").click();
-        cy.contains(`${i + 1} Likes`);
+        cy.contains(`Like (${i + 1})`);
       }
       cy.go("back");
 
@@ -217,7 +219,7 @@ describe("Blog app", function () {
       cy.contains("yet title").click();
       for (let i = 0; i < 2; i++) {
         cy.get("#like-button").click();
-        cy.contains(`${i + 1} Likes`);
+        cy.contains(`Like (${i + 1})`);
       }
       cy.go("back");
 
@@ -227,6 +229,62 @@ describe("Blog app", function () {
       cy.get(".blog").eq(0).should("contain", "another title");
       cy.get(".blog").eq(1).should("contain", "yet title");
       cy.get(".blog").eq(2).should("contain", "and title");
+    });
+
+    describe("Navigation", function () {
+      it("Nav bar shows Blogs and Users links", function () {
+        // Both navigation buttons should be visible in the AppBar
+        cy.get("nav, header").within(function () {
+          cy.contains("Blogs");
+          cy.contains("Users");
+        });
+      });
+
+      it("Users link navigates to the users list", function () {
+        cy.contains("Users").click();
+
+        // The Users page should display both test users in a table
+        cy.contains("Users");
+        cy.contains("Blogs Created");
+        cy.contains("himmeli");
+        cy.contains("gimmeli");
+      });
+
+      it("Blogs link navigates back to the blog list", function () {
+        // Navigate away from blogs first
+        cy.contains("Users").click();
+        cy.contains("Blogs Created");
+
+        // Navigate back via the Blogs nav link
+        cy.contains("Blogs").click();
+
+        // All three blogs should be visible on the list page
+        cy.contains("yet title");
+        cy.contains("another title");
+        cy.contains("and title");
+      });
+
+      it("Clicking a username on the users page shows their blogs", function () {
+        cy.contains("Users").click();
+        cy.contains("himmeli").click();
+
+        // User detail page — shows the username and all blogs created by this user
+        cy.contains("Blogs added by");
+        cy.contains("himmeli");
+        cy.contains("yet title");
+        cy.contains("another title");
+        cy.contains("and title");
+      });
+
+      it("User with no blogs shows empty state", function () {
+        cy.contains("Users").click();
+        cy.contains("gimmeli").click();
+
+        // Gimmeli has no blogs — the detail page should indicate this
+        cy.contains("Blogs added by");
+        cy.contains("gimmeli");
+        cy.contains("No blogs added yet.");
+      });
     });
   });
 });

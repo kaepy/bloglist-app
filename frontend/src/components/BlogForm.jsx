@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBlog } from "../services/blogs";
 
 import { useNotification } from "../hooks/useNotification";
-import { TextField, Button, Box, Typography } from "@mui/material";
+import { TextField, Button, Typography, Stack, Paper } from "@mui/material";
 
 const BlogForm = ({ togglableRef }) => {
   const queryClient = useQueryClient();
@@ -57,24 +57,19 @@ const BlogForm = ({ togglableRef }) => {
   };
 
   return (
-    <Box>
+    <Paper sx={{ p: 2, mt: 1, maxWidth: 450 }}>
       <Typography variant="h5" component="h2" gutterBottom>
         Create new blog
       </Typography>
-      <Box
-        component="form"
-        onSubmit={addBlog}
-        ref={formRef}
-        sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 400 }}
-      >
-        <TextField label="Title" name="title" id="title" placeholder="placeholder title" size="small" fullWidth />
-        <TextField label="Author" name="author" id="author" placeholder="placeholder author" size="small" fullWidth />
-        <TextField label="URL" name="url" id="url" placeholder="placeholder url" size="small" fullWidth />
+      <Stack spacing={2} component="form" onSubmit={addBlog} ref={formRef}>
+        <TextField label="Title" name="title" id="title" placeholder="placeholder title" />
+        <TextField label="Author" name="author" id="author" placeholder="placeholder author" />
+        <TextField label="URL" name="url" id="url" placeholder="placeholder url" />
         <Button id="create-button" type="submit" variant="contained" color="primary">
           Create
         </Button>
-      </Box>
-    </Box>
+      </Stack>
+    </Paper>
   );
 };
 

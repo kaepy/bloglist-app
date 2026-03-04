@@ -9,7 +9,7 @@
 
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { TextField, Button, Box, Typography } from "@mui/material";
+import { TextField, Button, Stack } from "@mui/material";
 
 const LoginForm = ({ handleLogin }) => {
   const [username, setUsername] = useState("");
@@ -24,37 +24,27 @@ const LoginForm = ({ handleLogin }) => {
   };
 
   return (
-    <Box>
-      <Box
-        component="form"
-        onSubmit={handleAuth}
-        sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 300 }}
-      >
-        <TextField
-          label="Username"
-          type="text"
-          id="username"
-          name="username"
-          value={username}
-          onChange={({ target }) => setUsername(target.value)}
-          size="small"
-          fullWidth
-        />
-        <TextField
-          label="Password"
-          type="password"
-          id="password"
-          name="password"
-          value={password}
-          onChange={({ target }) => setPassword(target.value)}
-          size="small"
-          fullWidth
-        />
-        <Button id="login-button" type="submit" variant="contained" color="primary">
-          Login
-        </Button>
-      </Box>
-    </Box>
+    <Stack component="form" spacing={2} onSubmit={handleAuth}>
+      <TextField
+        label="Username"
+        type="text"
+        id="username"
+        name="username"
+        value={username}
+        onChange={({ target }) => setUsername(target.value)}
+      />
+      <TextField
+        label="Password"
+        type="password"
+        id="password"
+        name="password"
+        value={password}
+        onChange={({ target }) => setPassword(target.value)}
+      />
+      <Button id="login-button" type="submit" variant="contained" color="secondary" fullWidth>
+        Login
+      </Button>
+    </Stack>
   );
 };
 

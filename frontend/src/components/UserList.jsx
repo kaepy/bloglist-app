@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "../services/users";
 import { Link } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner";
 
 import {
   Table,
@@ -25,20 +26,9 @@ import {
 const UserList = () => {
   const users = useQuery({ queryKey: ["users"], queryFn: getAllUsers });
 
-  if (users.isLoading) {
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
-        <CircularProgress />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Loading user data...
-        </Typography>
-      </Box>
-    );
-  }
+  if (users.isLoading) return <LoadingSpinner message="Loading users..." />;
 
-  if (users.isError) {
-    return <Alert severity="error">Error loading users. Please try again.</Alert>;
-  }
+  if (users.isError) return <Alert severity="error">Error loading users. Please try again.</Alert>;
 
   return (
     <>
@@ -48,14 +38,32 @@ const UserList = () => {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow>
+            <TableRow
+              sx={{
+                backgroundColor: "secondary.main",
+                // Kaikki solut headerin sisällä saavat mustan, bold-tekstin
+                "& .MuiTableCell-root": {
+                  color: "secondary.contrastText",
+                  fontWeight: 700,
+                },
+              }}
+            >
               <TableCell>User</TableCell>
               <TableCell align="right">Blogs Created</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users.data.map((user) => (
-              <TableRow key={user.id} hover>
+              <TableRow
+                key={user.id}
+                hover
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 214, 0, 0.08) !important", // Keltainen sävy
+                  },
+                  transition: "background-color 0.2s ease",
+                }}
+              >
                 <TableCell>
                   <MuiLink component={Link} to={`/users/${user.id}`}>
                     {user.username}

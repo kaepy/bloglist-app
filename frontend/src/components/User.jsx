@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getUserById } from "../services/users";
 import { Link } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner";
 
 import {
   Card,
@@ -38,15 +39,7 @@ const User = () => {
     queryFn: () => getUserById(id),
   });
 
-  if (isLoading)
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
-        <CircularProgress />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Loading user data...
-        </Typography>
-      </Box>
-    );
+  if (isLoading) return <LoadingSpinner message="Loading user data..." />;
   if (isError) return <Alert severity="error">User not found.</Alert>;
 
   return (
@@ -54,9 +47,18 @@ const User = () => {
       <CardContent>
         <Typography variant="h4" component="h1" gutterBottom>
           Blogs added by{" "}
-          <Box component="span" sx={{ color: "primary.main", fontWeight: "bold" }}>
+          <Typography
+            variant="h4"
+            component="span"
+            sx={{
+              backgroundColor: "secondary.main",
+              color: "secondary.contrastText", // #212121 — musta
+              px: 1, // Marginaali sivuille
+              borderRadius: 1,
+            }}
+          >
             {user.username}
-          </Box>
+          </Typography>
         </Typography>
       </CardContent>
 
@@ -69,7 +71,7 @@ const User = () => {
               <ListItemButton component={Link} to={`/blogs/${blog.id}`}>
                 <ListItemText primary={blog.title} />
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <Chip label={blog.likes} size="small" variant="outlined" />
+                  <Chip label={blog.likes} />
                 </Box>
               </ListItemButton>
             </ListItem>

@@ -1,90 +1,74 @@
 /**
  * @component App
  * Root component — renders either the login view (unauthenticated) or the
- * main app view (authenticated) based on user context.
- *
- * blogFormRef is passed into both Togglable and BlogForm so BlogForm can
- * collapse the form after a successful submission from inside the child.
+ * authenticated app view based on user context.
  */
 
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 
-import { useRef } from "react";
 import { useUser } from "./hooks/useUser";
 import { useAuth } from "./hooks/useAuth";
 
 import LoginForm from "./components/LoginForm";
 import Notification from "./components/Notification";
-import BlogList from "./components/BlogList";
-import Togglable from "./components/Togglable";
-import BlogForm from "./components/BlogForm";
-import UserList from "./components/UserList";
-import User from "./components/User";
-import Blog from "./components/Blog";
+import AppLayout from "./components/AppLayout";
 
-import { Container, AppBar, Toolbar, IconButton, Button, Typography } from "@mui/material";
-
+import { Typography, Box, Card } from "@mui/material";
 import Book from "@mui/icons-material/Book";
 
 const App = () => {
   const { user } = useUser();
   const { handleLogin, handleLogout } = useAuth();
-  const blogFormRef = useRef(); // Ref for the blog form to control its visibility
-
-  // Unauthenticated view: show only the login form
-  if (!user) {
-    return (
-      <Container>
-        <Typography variant="h4" component="h2">
-          Login to Bloglist
-        </Typography>
-        <Notification />
-        <LoginForm handleLogin={handleLogin} />
-      </Container>
-    );
-  }
 
   return (
-    <Router>
-      <Container>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton edge="start" color="inherit" aria-label="menu" component={Link} to="/">
-              <Book />
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Bloglist App
-              </Typography>
-            </IconButton>
-            <Button color="inherit" component={Link} to="/users">
-              Users
-            </Button>
-            <Typography>{user.name} logged in</Typography>
-            <Button color="inherit" onClick={handleLogout}>
-              Logout
-            </Button>
-          </Toolbar>
-        </AppBar>
+    <>
+      {/* Snackbar is fixed-positioned — rendered once, visible everywhere */}
+      <Notification />
 
-        <Notification />
+      {!user ? (
+      <Box
+        sx={{
+          // Ulompi Box — täyttää koko viewportin ja keskittää kortin
+          // Koko näytön korkeus — tarvitaan jotta vertical centering toimii
+          minHeight: "100vh",
+          // Flex-centering: lapsi (Card) keskelle molempiin suuntiin
+          display: "flex",
+          justifyContent: "center", // horisontaalinen keskitys
+          alignItems: "center", // vertikaalinen keskitys
+          // Taustakuvio: hienovarainen diagonaalinen liukuväri
+          // Keltainen vasemmasta alakulmasta → vaalea oikeaan yläkulmaan
+          background: "linear-gradient(135deg, #FFD600 0%, #FAFAFA 50%, #FAFAFA 100%)",
+        }}
+      >
+        <Card
+          sx={{
+            p: 4, // Sisäinen padding (32px)
+            width: "100%",
+            maxWidth: 420, // Ei leviä liian leveäksi
+            // Ylikirjoitetaan teeman MuiCard marginTop — login-kortissa
+            // ei tarvita ylämarginaalia koska flex hoitaa sijoittelun
+            mt: 0,
+            textAlign: "center", // Otsikko ja nappi keskelle
+          }}
+        >
+          <Book sx={{ fontSize: 48, color: "secondary.main", mb: 1 }} />
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <Togglable buttonLabel="New blog" ref={blogFormRef}>
-                  <BlogForm togglableRef={blogFormRef} />
-                </Togglable>
-                <BlogList />
-              </>
-            }
-          />
-          <Route path="/users" element={<UserList />} />
-          <Route path="/users/:id" element={<User />} />
-          <Route path="/blogs/:id" element={<Blog />} />
-        </Routes>
-      </Container>
-    </Router>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Bloglist
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Sign in to continue
+          </Typography>
+
+          <LoginForm handleLogin={handleLogin} />
+        </Card>
+      </Box>
+    ) : (
+      <Router>
+        <AppLayout user={user} handleLogout={handleLogout} />
+      </Router>
+    )}
+    </>
   );
 };
 

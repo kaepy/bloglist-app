@@ -11,26 +11,16 @@ import BlogListItem from "./BlogListItem";
 
 import { useQuery } from "@tanstack/react-query";
 import { getAllBlogs } from "../services/blogs";
+import LoadingSpinner from "./LoadingSpinner";
 
-import { Box, Typography, List, Paper, CircularProgress, Alert } from "@mui/material";
+import { List, Paper, Alert } from "@mui/material";
 
 const BlogList = () => {
   const blogs = useQuery({ queryKey: ["blogs"], queryFn: getAllBlogs });
 
-  if (blogs.isLoading) {
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", my: 4 }}>
-        <CircularProgress />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Loading blog data...
-        </Typography>
-      </Box>
-    );
-  }
+  if (blogs.isLoading) return <LoadingSpinner message="Loading blogs..." />;
 
-  if (blogs.isError) {
-    return <Alert severity="error">Error loading blogs. Please try again.</Alert>;
-  }
+  if (blogs.isError) return <Alert severity="error">Error loading blogs. Please try again.</Alert>;
 
   return (
     <Paper sx={{ mt: 2 }}>

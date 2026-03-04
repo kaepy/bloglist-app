@@ -21,12 +21,39 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 
 const BlogListItem = ({ blog }) => {
   return (
-    <ListItem disablePadding>
+    <ListItem
+      className="blog"
+      disablePadding
+      sx={{
+        // Keltainen vasen reunaviiva — antaa listan elementeille "korttimaisen" ilmeen
+        borderLeft: "3px solid transparent",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          borderLeft: "3px solid",
+          borderLeftColor: "secondary.main", // Keltainen viiva hoverilla
+          transform: "translateX(4px)", // Siirtyy hieman oikealle
+          backgroundColor: "rgba(255, 214, 0, 0.04)", // Hienoinen keltainen tausta
+        },
+      }}
+    >
       <ListItemButton component={Link} to={`/blogs/${blog.id}`}>
         <ListItemText primary={blog.title} secondary={`by ${blog.author}`} />
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Chip label={blog.likes} size="small" variant="outlined" />
-        </Box>
+        <Chip
+          icon={<ThumbUpIcon sx={{ color: "inherit" }} />}
+          label={blog.likes}
+          sx={{
+            color: "secondary.contrastText",
+            fontWeight: 600,
+            // Ikonin väri — Chip ylikirjoittaa lapsen värin,
+            // joten se pitää pakottaa tässä
+            "& .MuiChip-icon": {
+              color: "inherit",
+            },
+            // Lisää ilmavuutta
+            px: 0.5,
+            height: 28,
+          }}
+        />
       </ListItemButton>
     </ListItem>
   );

@@ -33,22 +33,13 @@ const Togglable = forwardRef((props, ref) => {
   });
 
   return (
-    <Box sx={{ my: 2 }}>
-      {/* Show "open" button only when content is hidden */}
-      {!visible && (
-        <Button variant="contained" onClick={toggleVisibility}>
-          {props.buttonLabel}
-        </Button>
-      )}
+    <Box sx={{ my: 1 }}>
+      <Button variant="contained" color="secondary" onClick={toggleVisibility}>
+        {visible ? "Cancel" : props.buttonLabel}
+      </Button>
 
-      {/* Animated show/hide of children */}
       <Collapse in={visible}>
-        <Box className="togglableContent" sx={{ mt: 2 }}>
-          {props.children}
-          <Button variant="outlined" color="secondary" onClick={toggleVisibility} sx={{ mt: 1 }}>
-            Cancel
-          </Button>
-        </Box>
+        <Box className="togglableContent">{props.children}</Box>
       </Collapse>
     </Box>
   );

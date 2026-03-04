@@ -19,6 +19,7 @@ import { getBlogById, updateBlog, commentBlog, removeBlog } from "../services/bl
 
 import { useNotification } from "../hooks/useNotification";
 import { useUser } from "../hooks/useUser";
+import LoadingSpinner from "./LoadingSpinner";
 
 import {
   Card,
@@ -33,7 +34,7 @@ import {
   ListItemText,
   Divider,
   Box,
-  CircularProgress,
+  Stack,
   Alert,
   Link as MuiLink,
 } from "@mui/material";
@@ -102,7 +103,7 @@ const Blog = () => {
 
   const formRef = useRef();
 
-  if (isLoading) return <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />;
+  if (isLoading) return <LoadingSpinner message="Loading blog..." />;
   if (isError) return <Alert severity="error">Blog not found.</Alert>;
 
   const updateLikes = (event) => {
@@ -154,7 +155,14 @@ const Blog = () => {
       </CardContent>
 
       <CardActions>
-        <Button startIcon={<ThumbUpIcon />} onClick={updateLikes} id="like-button">
+        <Button
+          startIcon={<ThumbUpIcon />}
+          onClick={updateLikes}
+          id="like-button"
+          variant="contained"
+          color="secondary"
+          size="small"
+        >
           Like ({blog.likes})
         </Button>
 
@@ -174,16 +182,22 @@ const Blog = () => {
         <Typography variant="h6" gutterBottom>
           Comments
         </Typography>
-        <Box component="form" onSubmit={addComment} ref={formRef} sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Stack component="form" onSubmit={addComment} ref={formRef} direction="row" spacing={1}>
           <TextField name="comment" id="comment" placeholder="Add a comment..." size="small" fullWidth />
-          <Button type="submit" variant="contained" id="add-comment-button">
+          <Button type="submit" variant="contained" color="secondary" id="add-comment-button">
             Add
           </Button>
-        </Box>
+        </Stack>
         {blog.comments?.length > 0 ? (
           <List dense>
             {blog.comments.map((comment, index) => (
-              <ListItem key={index}>
+              <ListItem
+                key={index}
+                sx={{
+                  backgroundColor: index % 2 === 0 ? "transparent" : "rgba(0, 0, 0, 0.04)",
+                  borderRadius: 1,
+                }}
+              >
                 <ListItemText primary={comment} />
               </ListItem>
             ))}
