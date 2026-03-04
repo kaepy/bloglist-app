@@ -6,7 +6,11 @@ Jos käytät tyylien lisäämiseen noin tunnin aikaa, merkkaa myös tämä teht�
 
 ## Changes
 
-- Validate likes increment: enforce increment by exactly 1 and add tests for edge cases
+- Add SPA fallback route to serve index.html on page refresh
+- Non-API GET requests (e.g. /blogs/:id) were hitting Express's
+  unknownEndpoint middleware and returning 404 JSON instead of
+  letting React Router handle them. Added a catch-all route that
+  serves index.html for any non-API GET request.
 
 ## Known issues
 
