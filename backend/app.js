@@ -14,6 +14,7 @@
  */
 
 const express = require("express");
+const path = require("path");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -58,6 +59,18 @@ if (process.env.NODE_ENV === "test") {
   const testingRouter = require("./controllers/testing");
   app.use("/api/testing", testingRouter);
 }
+
+// --- SPA Fallback ---
+// Serve index.html for any non-API GET request so React Router
+// can handle client-side routes (e.g. /blogs/:id) on page refresh.
+// Must be after API routes but before unknownEndpoint so that
+// missing API endpoints still return 404 JSON as expected.
+const distPath = path.resolve(__dirname, "../frontend/dist");
+app.get(/^\/(?!api\/).*/, (req, res, next) => {
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) next(err);
+  });
+});
 
 // --- Error-handling Middleware (must be after routes) ---
 app.use(middleware.unknownEndpoint);
