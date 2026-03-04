@@ -107,9 +107,15 @@ blogsRouter.put("/:id", middleware.userExtractor, async (request, response) => {
   const user = request.user;
   const isOwner = existingBlog.user.toString() === user._id.toString();
 
+  // Guard: likes can only be incremented by exactly 1 per request.
+  // Without this, a malicious client could send any arbitrary likes value.
+  if (body.likes !== undefined && body.likes !== existingBlog.likes + 1) {
+    return response.status(400).json({ error: "likes can only be incremented by 1" });
+  }
+
   // Build update object: likes are always writable, content only by owner
   const blog = {
-    likes: body.likes,
+    likes: body.likes !== undefined ? body.likes : existingBlog.likes,
     title: isOwner ? body.title : existingBlog.title,
     author: isOwner ? body.author : existingBlog.author,
     url: isOwner ? body.url : existingBlog.url,

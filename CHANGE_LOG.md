@@ -6,17 +6,7 @@ Jos käytät tyylien lisäämiseen noin tunnin aikaa, merkkaa myös tämä teht�
 
 ## Changes
 
-- Refactor frontend components and improve UI/UX
-- Updated login command to use environment variable for backend URL.
-- Changed favicon from vite.svg to a custom favicon.svg.
-- Refactored App component to separate authenticated and unauthenticated views.
-- Added LoadingSpinner component for better loading state handling.
-- Enhanced Blog, BlogList, and User components with improved loading indicators.
-- Introduced AppLayout component for authenticated user navigation.
-- Updated theme for consistent styling across components.
-- Improved BlogListItem and UserList components with better hover effects.
-- Refactored LoginForm and BlogForm components to use Stack for layout.
-- Enhanced Notification component with Snackbar for better user feedback.
+- Validate likes increment: enforce increment by exactly 1 and add tests for edge cases
 
 ## Known issues
 

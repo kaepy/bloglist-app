@@ -184,14 +184,15 @@ describe("when there is initially some blogs saved", () => {
   });
 
   describe("modification of a blog", () => {
-    test("succeeds with valid id", async () => {
-      const modifiedBlog = {
-        likes: 999,
-      };
-
+    test("succeeds when likes is incremented by exactly 1", async () => {
       const blogsAtStart = await helper.blogsInDb();
       const blogToModify = blogsAtStart[0];
       const authToken = await helper.testUserToken();
+
+      // Increment likes by exactly 1 — the only allowed operation
+      const modifiedBlog = {
+        likes: blogToModify.likes + 1,
+      };
 
       await api
         .put(`/api/blogs/${blogToModify.id}`)
@@ -199,10 +200,52 @@ describe("when there is initially some blogs saved", () => {
         .send(modifiedBlog)
         .expect(200);
 
-      // Verify the likes value was updated in the database
+      // Verify the likes value was incremented by 1 in the database
       const blogsAtEnd = await helper.blogsInDb();
-      const blogAfterMod = blogsAtEnd[0];
-      assert.strictEqual(blogAfterMod.likes, modifiedBlog.likes);
+      const blogAfterMod = blogsAtEnd.find((b) => b.id === blogToModify.id);
+      assert.strictEqual(blogAfterMod.likes, blogToModify.likes + 1);
+    });
+
+    test("fails with 400 if likes is incremented by more than 1", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToModify = blogsAtStart[0];
+      const authToken = await helper.testUserToken();
+
+      // Attempt to set an arbitrary likes value — should be rejected
+      const modifiedBlog = {
+        likes: blogToModify.likes + 100,
+      };
+
+      const response = await api
+        .put(`/api/blogs/${blogToModify.id}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(modifiedBlog)
+        .expect(400);
+
+      assert.strictEqual(response.body.error, "likes can only be incremented by 1");
+
+      // Verify the likes value was NOT changed in the database
+      const blogsAtEnd = await helper.blogsInDb();
+      const blogAfterMod = blogsAtEnd.find((b) => b.id === blogToModify.id);
+      assert.strictEqual(blogAfterMod.likes, blogToModify.likes);
+    });
+
+    test("fails with 400 if likes is decremented", async () => {
+      const blogsAtStart = await helper.blogsInDb();
+      const blogToModify = blogsAtStart[0];
+      const authToken = await helper.testUserToken();
+
+      const modifiedBlog = {
+        likes: blogToModify.likes - 1,
+      };
+
+      const response = await api
+        .put(`/api/blogs/${blogToModify.id}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(modifiedBlog)
+        .expect(400);
+
+      assert.strictEqual(response.body.error, "likes can only be incremented by 1");
     });
   });
 
