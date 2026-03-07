@@ -1,4 +1,16 @@
-# bloglist-app
+# Bloglist App
+
+## Use of AI
+
+AI has been used in this project to...
+
+- mentoring without writing a course task related code
+- add JSDoc comments to learn more about good and bad commenting
+- update and add new frontend and backend tests
+- add extra features that is not mention in the course material
+- learn more about MaterialUI
+- improve security as this project runs also on production
+- learn how to use Copilot, Claude and MCPs
 
 ## Testing
 
